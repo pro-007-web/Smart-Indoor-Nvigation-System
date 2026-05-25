@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MallNav — Crystal Palace Indore</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#060810;--s1:#0c1020;--s2:#131928;--s3:#1a2235;
+  --b1:rgba(100,150,255,.1);--b2:rgba(100,150,255,.2);
+  --tx:#dce8ff;--t2:#7a90b8;--t3:#3a4a68;
+  --ac:#38f5c0;--ad:rgba(56,245,192,.15);
+  --am:#ffc14a;--amd:rgba(255,193,74,.15);
+  --rd:#ff5a5a;--vi:#a07aff;--bl:#4a9eff;
+  --f0:#38f5c0;--f1:#4a9eff;--f2:#a07aff;
+  --mono:'IBM Plex Mono',monospace;--sans:'Syne',sans-serif;
+  --r:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--tx);font-family:var(--sans);}
+body{display:flex;flex-direction:column;}
+
+/* ── QR SCREEN ── */
+#qrs{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .6s;}
+#qrs.out{opacity:0;pointer-events:none;}
+.qr-brand{font-family:var(--mono);font-size:11px;letter-spacing:5px;color:var(--ac);opacity:.5;margin-bottom:32px;}
+.qr-brand em{color:var(--t3);font-style:normal;}
+.qr-scanline{position:absolute;left:0;right:0;height:1px;background:rgba(56,245,192,.12);animation:sf 3s linear infinite;pointer-events:none;}
+@keyframes sf{0%{top:0}100%{top:100%}}
+.qrf{width:196px;height:196px;position:relative;margin-bottom:26px;cursor:pointer;}
+.qrf::before,.qrf::after{content:'';position:absolute;width:26px;height:26px;border-color:var(--ac);border-style:solid;border-radius:3px;}
+.qrf::before{top:0;left:0;border-width:3px 0 0 3px;}
+.qrf::after{bottom:0;right:0;border-width:0 3px 3px 0;}
+.qrc-tr{position:absolute;top:0;right:0;width:26px;height:26px;border:3px solid var(--ac);border-left:none;border-bottom:none;border-radius:0 3px 0 0;}
+.qrc-bl{position:absolute;bottom:0;left:0;width:26px;height:26px;border:3px solid var(--ac);border-right:none;border-top:none;border-radius:0 0 0 3px;}
+.qr-laser{position:absolute;left:8px;right:8px;height:2px;background:linear-gradient(90deg,transparent,var(--ac),transparent);top:8px;animation:lsr 2s ease-in-out infinite;box-shadow:0 0 8px var(--ac);}
+@keyframes lsr{0%,100%{top:8px;opacity:.8}50%{top:180px;opacity:1}}
+.qr-grid{position:absolute;inset:16px;display:grid;grid-template-columns:repeat(9,1fr);gap:2px;opacity:.5;}
+.qr-cell{border-radius:2px;background:var(--tx);}
+.qr-cell.e{background:transparent;}
+.qr-ttl{font-size:21px;font-weight:800;margin-bottom:5px;text-align:center;}
+.qr-sub{font-size:13px;color:var(--t2);margin-bottom:28px;text-align:center;line-height:1.5;}
+.gate-sel{display:none;flex-direction:column;align-items:center;gap:8px;margin-bottom:22px;}
+.gate-sel.show{display:flex;}
+.gate-lbl{font-family:var(--mono);font-size:10px;color:var(--t3);letter-spacing:2px;}
+.gate-btns{display:flex;gap:8px;}
+.gbtn{font-family:var(--mono);font-size:11px;padding:9px 16px;border:1px solid var(--b2);border-radius:var(--r);background:var(--s2);color:var(--t2);cursor:pointer;transition:all .2s;text-align:center;line-height:1.4;}
+.gbtn:hover,.gbtn.picked{border-color:var(--ac);color:var(--ac);background:var(--ad);}
+.qr-prog{width:256px;display:none;}
+.qr-prog.show{display:block;}
+.prog-lbl{font-family:var(--mono);font-size:11px;color:var(--ac);text-align:center;margin-bottom:7px;}
+.prog-track{height:3px;background:var(--s3);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--ac);width:0;transition:width .22s ease;border-radius:3px;}
+.prog-pct{font-family:var(--mono);font-size:10px;color:var(--t2);text-align:center;margin-top:5px;}
+.qr-cta{font-family:var(--mono);font-size:11px;letter-spacing:2px;padding:12px 30px;border:1.5px solid var(--ac);border-radius:var(--r);background:transparent;color:var(--ac);cursor:pointer;transition:all .2s;}
+.qr-cta:hover{background:var(--ad);}
+.qr-hint{font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:10px;}
+
+/* ── TOP BAR ── */
+.bar{height:48px;flex-shrink:0;background:rgba(12,16,32,.98);border-bottom:1px solid var(--b1);display:flex;align-items:center;padding:0 14px;gap:10px;z-index:10;}
+.logo{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--ac);letter-spacing:3px;}
+.logo em{color:var(--t3);font-style:normal;}
+.bpill{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:20px;background:var(--ad);color:var(--ac);border:1px solid rgba(56,245,192,.22);}
+.gchip{font-family:var(--mono);font-size:10px;padding:3px 9px;border-radius:20px;background:var(--amd);color:var(--am);border:1px solid rgba(255,193,74,.22);}
+.upos{font-family:var(--mono);font-size:10px;color:var(--t2);margin-left:auto;cursor:pointer;padding:4px 8px;border-radius:5px;transition:background .15s;border:1px solid transparent;}
+.upos:hover{background:var(--s2);border-color:var(--b1);}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--ac);margin-left:5px;animation:ld 2s infinite;}
+@keyframes ld{0%,100%{opacity:1;box-shadow:0 0 4px var(--ac)}50%{opacity:.3;box-shadow:none}}
+
+/* ── LAYOUT ── */
+.layout{flex:1;display:flex;overflow:hidden;min-height:0;}
+
+/* ── SIDEBAR ── */
+.sb{width:276px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--b1);display:flex;flex-direction:column;overflow:hidden;}
+.sb-top{flex-shrink:0;}
+.srch-wrap{padding:10px;}
+.srch-wrap input{width:100%;background:var(--s2);border:1px solid var(--b2);border-radius:var(--r);padding:8px 11px;font-family:var(--sans);font-size:13px;color:var(--tx);outline:none;transition:border .15s;}
+.srch-wrap input:focus{border-color:var(--ac);}
+.srch-wrap input::placeholder{color:var(--t3);}
+
+/* Tab bar */
+.tabs{display:flex;border-bottom:1px solid var(--b1);flex-shrink:0;}
+.tab{flex:1;padding:8px 4px;font-family:var(--mono);font-size:9px;letter-spacing:.5px;border:none;background:transparent;color:var(--t3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;position:relative;}
+.tab.on{color:var(--ac);border-bottom-color:var(--ac);}
+.tab.hist-tab.on{color:var(--am);border-bottom-color:var(--am);}
+.tab-badge{position:absolute;top:4px;right:6px;min-width:14px;height:14px;border-radius:7px;background:var(--am);color:#040810;font-size:8px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px;display:none;}
+.tab-badge.show{display:flex;}
+
+.ltogs{display:flex;gap:5px;padding:8px 10px;border-bottom:1px solid var(--b1);}
+.ltog{flex:1;padding:6px 4px;border-radius:6px;cursor:pointer;border:1px solid var(--b2);background:transparent;font-family:var(--mono);font-size:10px;transition:all .2s;text-align:center;}
+.ltog.f0{color:var(--f0);}.ltog.f1{color:var(--f1);}.ltog.f2{color:var(--f2);}
+.ltog.on.f0{background:rgba(56,245,192,.1);border-color:rgba(56,245,192,.4);}
+.ltog.on.f1{background:rgba(74,158,255,.1);border-color:rgba(74,158,255,.4);}
+.ltog.on.f2{background:rgba(160,122,255,.1);border-color:rgba(160,122,255,.4);}
+.cats{display:flex;gap:4px;padding:8px 10px;flex-wrap:wrap;border-bottom:1px solid var(--b1);}
+.cat{font-family:var(--mono);font-size:9px;padding:4px 8px;border-radius:20px;cursor:pointer;border:1px solid var(--b1);color:var(--t2);background:transparent;transition:all .15s;}
+.cat.on{border-color:var(--ac);color:var(--ac);background:var(--ad);}
+
+/* Tab panels */
+.tab-panel{flex:1;overflow-y:auto;display:none;min-height:0;}
+.tab-panel.show{display:flex;flex-direction:column;}
+.tab-panel::-webkit-scrollbar{width:3px;}
+.tab-panel::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+
+/* Store list items */
+.slist-inner{padding:6px;}
+.si{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:7px;cursor:pointer;border:1px solid transparent;transition:background .12s,border .12s;margin-bottom:2px;}
+.si:hover{background:var(--s2);border-color:var(--b1);}
+.si.sel{background:var(--s3);border-color:var(--b2);}
+.si.ntgt{border-color:var(--ac);background:rgba(56,245,192,.05);}
+.si.origin{border-color:var(--am);background:rgba(255,193,74,.04);}
+.sico{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.sinf{flex:1;min-width:0;}
+.sn{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sm{font-family:var(--mono);font-size:9px;color:var(--t2);margin-top:1px;display:flex;align-items:center;gap:5px;}
+.fdot{width:5px;height:5px;border-radius:50%;}
+.sdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.open{background:var(--ac);}.closed{background:var(--rd);}
+.nb{width:24px;height:24px;border-radius:5px;border:1px solid var(--b2);background:transparent;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;font-family:var(--mono);}
+.nb:hover{border-color:var(--ac);background:var(--ad);}
+.nb.lb{color:var(--am);}.nb.lb:hover{border-color:var(--am);background:var(--amd);}
+.nb.db{color:var(--ac);}
+
+/* ── HISTORY PANEL ── */
+.hist-wrap{padding:10px;flex:1;overflow-y:auto;}
+.hist-wrap::-webkit-scrollbar{width:3px;}
+.hist-wrap::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px;}
+
+/* Current inferred location card */
+.curr-loc-card{
+  background:var(--s2);border:1px solid rgba(255,193,74,.28);border-radius:10px;
+  padding:12px;margin-bottom:12px;position:relative;overflow:hidden;
+}
+.curr-loc-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--am);
+}
+.clc-label{font-family:var(--mono);font-size:9px;color:rgba(255,193,74,.6);letter-spacing:2px;margin-bottom:6px;}
+.clc-name{font-size:14px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.clc-meta{font-family:var(--mono);font-size:9px;color:var(--t2);display:flex;gap:8px;align-items:center;}
+.clc-floor{padding:2px 7px;border-radius:10px;font-size:8px;}
+.clc-actions{display:flex;gap:6px;margin-top:10px;}
+.clc-btn{flex:1;padding:7px;border-radius:6px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer;border:1px solid;transition:all .2s;text-align:center;}
+.clc-btn.primary{background:var(--am);color:#040810;border-color:var(--am);font-weight:700;}
+.clc-btn.primary:hover{opacity:.85;}
+.clc-btn.secondary{background:transparent;color:var(--t2);border-color:var(--b2);}
+.clc-btn.secondary:hover{border-color:var(--ac);color:var(--ac);}
+
+/* Journey summary bar */
+.journey-bar{
+  background:var(--s2);border:1px solid var(--b1);border-radius:8px;
+  padding:10px 12px;margin-bottom:10px;display:flex;gap:12px;
+}
+.jb-stat{text-align:center;flex:1;}
+.jb-val{font-family:var(--mono);font-size:14px;color:var(--ac);font-weight:500;}
+.jb-lbl{font-family:var(--mono);font-size:8px;color:var(--t3);margin-top:2px;}
+
+/* History timeline */
+.hist-section-label{font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:2px;padding:4px 2px 6px;text-transform:uppercase;}
+
+.hist-empty{text-align:center;padding:32px 16px;color:var(--t3);font-size:13px;}
+.hist-empty-icon{font-size:28px;margin-bottom:8px;}
+
+.hitem{display:flex;gap:0;margin-bottom:0;}
+.hline{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:28px;}
+.hline-dot{width:10px;height:10px;border-radius:50%;border:2px solid;flex-shrink:0;position:relative;z-index:1;}
+.hline-seg{width:2px;flex:1;min-height:12px;margin:0 auto;}
+.hcard{flex:1;background:var(--s2);border:1px solid var(--b1);border-radius:8px;padding:9px 10px;margin-bottom:6px;margin-left:4px;cursor:pointer;transition:all .15s;position:relative;overflow:hidden;}
+.hcard:hover{border-color:var(--b2);background:var(--s3);}
+.hcard.current-stop{border-color:rgba(255,193,74,.35);background:rgba(255,193,74,.04);}
+.hcard-left{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;}
+.hcard-name{font-size:12px;font-weight:700;}
+.hcard-time{font-family:var(--mono);font-size:9px;color:var(--t3);}
+.hcard-meta{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.hcard-floor{font-family:var(--mono);font-size:8px;padding:2px 7px;border-radius:10px;}
+.hcard-cat{font-family:var(--mono);font-size:8px;color:var(--t2);}
+.hcard-dur{font-family:var(--mono);font-size:8px;color:var(--t3);}
+.hcard-actions{display:flex;gap:5px;}
+.ha-btn{font-family:var(--mono);font-size:8px;padding:4px 8px;border-radius:5px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s;}
+.ha-btn:hover{border-color:var(--ac);color:var(--ac);}
+.ha-btn.go{border-color:rgba(56,245,192,.3);color:var(--ac);background:var(--ad);}
+.ha-btn.set-loc{border-color:rgba(255,193,74,.3);color:var(--am);}
+.ha-badge{position:absolute;right:8px;top:8px;font-family:var(--mono);font-size:8px;padding:2px 6px;border-radius:10px;}
+
+/* Clear history btn */
+.clear-hist{width:100%;padding:8px;font-family:var(--mono);font-size:9px;background:transparent;border:1px solid var(--b1);border-radius:6px;color:var(--t3);cursor:pointer;transition:all .15s;margin-top:8px;letter-spacing:1px;}
+.clear-hist:hover{border-color:var(--rd);color:var(--rd);}
+
+/* ── NAV PANEL ── */
+.np{border-top:1px solid var(--b2);padding:12px;background:var(--s2);flex-shrink:0;}
+.np.hide{display:none;}
+.np-ttl{font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:2px;margin-bottom:8px;}
+.np-rt{display:flex;align-items:center;gap:4px;margin-bottom:9px;}
+.np-nd{flex:1;border-radius:6px;padding:6px 8px;cursor:pointer;transition:border .15s;}
+.np-nd.fn{background:rgba(255,193,74,.07);border:1px solid rgba(255,193,74,.22);}
+.np-nd.fn:hover{border-color:rgba(255,193,74,.5);}
+.np-nd.tn{background:rgba(56,245,192,.05);border:1px solid rgba(56,245,192,.18);}
+.np-nl{font-family:var(--mono);font-size:8px;margin-bottom:2px;}
+.np-nd.fn .np-nl{color:rgba(255,193,74,.6);}
+.np-nd.tn .np-nl{color:rgba(56,245,192,.6);}
+.np-nv{font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.np-arr{color:var(--ac);font-size:13px;flex-shrink:0;}
+.np-ss{display:flex;gap:5px;margin-bottom:9px;}
+.np-s{flex:1;background:var(--s3);border-radius:6px;padding:7px;text-align:center;}
+.np-sv{font-family:var(--mono);font-size:15px;color:var(--ac);font-weight:500;}
+.np-sl{font-family:var(--mono);font-size:8px;color:var(--t3);margin-top:2px;}
+.np-btn{width:100%;padding:9px;border:none;border-radius:6px;background:var(--ac);color:#040810;font-family:var(--mono);font-size:10px;letter-spacing:2px;font-weight:700;cursor:pointer;transition:opacity .2s;}
+.np-btn:hover{opacity:.85;}
+.np-btn.walk{background:var(--am);}
+.np-stps{margin-top:9px;max-height:110px;overflow-y:auto;}
+.np-stps::-webkit-scrollbar{width:2px;}
+.np-stps::-webkit-scrollbar-thumb{background:var(--b2);border-radius:1px;}
+.np-stp{display:flex;gap:7px;padding:5px 0;border-bottom:1px solid var(--b1);}
+.np-stp:last-child{border:none;}
+.np-si{width:20px;height:20px;border-radius:50%;background:var(--s3);border:1px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.np-si.c{background:var(--amd);border-color:var(--am);}
+.np-si.e{background:var(--ad);border-color:var(--ac);}
+.np-stxt{padding-top:2px;color:var(--t2);font-size:10px;line-height:1.5;}
+.np-stxt b{color:var(--tx);}
+
+/* ── MAP ── */
+.mwrap{flex:1;position:relative;overflow:hidden;background:var(--bg);}
+#cv{display:block;touch-action:none;}
+.vms{position:absolute;top:10px;right:10px;display:flex;gap:5px;}
+.vm{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:6px 10px;border-radius:6px;border:1px solid var(--b2);background:rgba(6,8,16,.9);color:var(--t2);cursor:pointer;transition:all .2s;backdrop-filter:blur(8px);}
+.vm.on{border-color:var(--ac);color:var(--ac);background:var(--ad);}
+.loc-mode-bar{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(255,193,74,.12);border:1px solid rgba(255,193,74,.35);border-radius:20px;padding:7px 18px;font-family:var(--mono);font-size:10px;color:var(--am);display:none;letter-spacing:1px;pointer-events:none;backdrop-filter:blur(8px);}
+.loc-mode-bar.show{display:block;}
+.zcs{position:absolute;bottom:16px;right:10px;display:flex;flex-direction:column;gap:4px;}
+.zc{width:32px;height:32px;border-radius:6px;border:1px solid var(--b2);background:rgba(6,8,16,.9);color:var(--tx);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);transition:all .15s;font-family:var(--mono);}
+.zc:hover{border-color:var(--ac);color:var(--ac);}
+.leg{position:absolute;bottom:16px;left:10px;background:rgba(6,8,16,.9);border:1px solid var(--b1);border-radius:10px;padding:9px 12px;backdrop-filter:blur(8px);}
+.leg-t{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--t3);margin-bottom:7px;}
+.leg-r{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-family:var(--mono);font-size:9px;color:var(--t2);}
+.leg-sw{width:16px;height:5px;border-radius:2px;}
+.leg-sep{height:1px;background:var(--b1);margin:4px 0;}
+.tt{position:absolute;pointer-events:none;background:rgba(6,8,16,.97);border:1px solid var(--b2);border-radius:7px;padding:7px 11px;display:none;z-index:50;backdrop-filter:blur(10px);min-width:140px;}
+.tt-n{font-size:12px;font-weight:700;margin-bottom:3px;}
+.tt-m{font-family:var(--mono);font-size:9px;color:var(--t2);display:flex;gap:7px;margin-bottom:5px;}
+.tt-hint{font-family:var(--mono);font-size:9px;padding:3px 7px;border-radius:4px;text-align:center;}
+.tt-hint.d{background:var(--ad);color:var(--ac);}
+.tt-hint.l{background:var(--amd);color:var(--am);}
+
+/* ── VOICE NAVIGATION ── */
+.voice-bar{
+  position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
+  background:var(--s2);border:1px solid rgba(56,245,192,.25);
+  border-radius:14px;padding:10px 16px;display:none;
+  min-width:260px;max-width:340px;backdrop-filter:blur(10px);
+  z-index:20;animation:vb-in .3s ease;
+}
+@keyframes vb-in{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.voice-bar.show{display:block;}
+.vb-top{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.vb-icon{width:32px;height:32px;border-radius:50%;background:rgba(56,245,192,.12);border:1.5px solid rgba(56,245,192,.35);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.vb-icon.speaking{animation:vb-pulse 1s ease-in-out infinite;}
+@keyframes vb-pulse{0%,100%{box-shadow:0 0 0 0 rgba(56,245,192,.4)}50%{box-shadow:0 0 0 6px rgba(56,245,192,0)}}
+.vb-step{font-size:12px;font-weight:600;flex:1;line-height:1.4;}
+.vb-progress{display:flex;gap:4px;align-items:center;}
+.vb-dots{display:flex;gap:3px;flex:1;}
+.vb-dot{width:6px;height:6px;border-radius:50%;background:var(--b2);transition:background .3s;}
+.vb-dot.done{background:var(--ac);}
+.vb-dot.current{background:var(--ac);animation:vb-dot-pulse .8s ease-in-out infinite;}
+@keyframes vb-dot-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.4)}}
+.vb-count{font-family:var(--mono);font-size:9px;color:var(--t3);white-space:nowrap;}
+.vb-controls{display:flex;gap:6px;margin-top:8px;}
+.vb-btn{flex:1;padding:6px;border-radius:6px;font-family:var(--mono);font-size:9px;letter-spacing:.5px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s;}
+.vb-btn:hover{border-color:var(--ac);color:var(--ac);}
+.vb-btn.active{background:rgba(56,245,192,.1);border-color:var(--ac);color:var(--ac);}
+.vb-btn.mute{color:var(--rd);}.vb-btn.mute:hover{border-color:var(--rd);}
+
+/* Voice toggle in nav panel */
+.voice-toggle-row{display:flex;align-items:center;gap:8px;margin-top:8px;padding:8px;background:var(--s3);border-radius:6px;border:1px solid var(--b1);}
+.voice-toggle-icon{font-size:14px;}
+.voice-toggle-label{font-family:var(--mono);font-size:10px;color:var(--t2);flex:1;}
+.voice-toggle-btn{font-family:var(--mono);font-size:9px;padding:4px 10px;border-radius:5px;border:1px solid var(--b2);background:transparent;color:var(--t2);cursor:pointer;transition:all .15s;}
+.voice-toggle-btn.on{background:rgba(56,245,192,.1);border-color:var(--ac);color:var(--ac);}
+
+/* Arrival toast */
+.toast{
+  position:absolute;bottom:70px;left:50%;transform:translateX(-50%);
+  background:var(--s2);border:1px solid rgba(56,245,192,.3);border-radius:10px;
+  padding:10px 16px;font-family:var(--mono);font-size:11px;color:var(--ac);
+  display:none;white-space:nowrap;backdrop-filter:blur(8px);z-index:20;
+  animation:toast-in .3s ease;
+}
+@keyframes toast-in{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- QR SCREEN -->
+<div id="qrs">
+  <div class="qr-scanline"></div>
+  <div class="qr-brand">// MALL<em>/</em>NAV &nbsp;·&nbsp; v3.0</div>
+  <div class="qrf" id="qrf" onclick="startScan()">
+    <div class="qrc-tr"></div><div class="qrc-bl"></div>
+    <div class="qr-laser"></div>
+    <div class="qr-grid" id="qr-grid"></div>
+  </div>
+  <div class="qr-ttl" id="qr-ttl">Scan QR to Enter</div>
+  <div class="qr-sub" id="qr-sub">Crystal Palace Mall, Indore<br>Point camera at entrance QR code</div>
+  <div class="gate-sel" id="gate-sel">
+    <div class="gate-lbl">SELECT YOUR ENTRY GATE</div>
+    <div class="gate-btns">
+      <button class="gbtn" onclick="pickGate('A',this)">Gate A<br><span style="font-size:9px;color:var(--t3)">Main Entrance</span></button>
+      <button class="gbtn" onclick="pickGate('B',this)">Gate B<br><span style="font-size:9px;color:var(--t3)">East Wing</span></button>
+      <button class="gbtn" onclick="pickGate('C',this)">Gate C<br><span style="font-size:9px;color:var(--t3)">Parking</span></button>
+    </div>
+  </div>
+  <div class="qr-prog" id="qr-prog">
+    <div class="prog-lbl" id="prog-lbl">Connecting…</div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+    <div class="prog-pct" id="prog-pct">0%</div>
+  </div>
+  <button class="qr-cta" id="qr-cta" onclick="startScan()">▶ Simulate QR Scan</button>
+  <div class="qr-hint">Tap the QR frame or button above</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;flex-direction:column;height:100%;">
+  <div class="bar">
+    <div class="logo">MALL<em>/</em>NAV</div>
+    <div class="bpill">CRYSTAL PALACE · INDORE</div>
+    <div class="gchip" id="bar-gate">GATE-A</div>
+    <div class="upos" id="upos" onclick="switchTab('hist')" title="View location history">📍 Gate A · GF ↗</div>
+    <div class="ldot"></div>
+  </div>
+
+  <div class="layout">
+    <div class="sb">
+      <div class="sb-top">
+        <div class="srch-wrap"><input type="text" placeholder="🔍  Search stores…" id="srch" oninput="onSearch(this.value)"></div>
+        <div class="tabs">
+          <button class="tab on" id="tab-stores" onclick="switchTab('stores')">STORES</button>
+          <button class="tab hist-tab" id="tab-hist" onclick="switchTab('hist')">
+            HISTORY
+            <div class="tab-badge" id="hist-badge">0</div>
+          </button>
+          <button class="tab" id="tab-loc" onclick="switchTab('loc')">📍 MY LOC</button>
+        </div>
+        <!-- shown only in stores tab -->
+        <div id="stores-controls">
+          <div class="ltogs">
+            <button class="ltog f0 on" id="lt0" onclick="togLayer(0)">GF ●</button>
+            <button class="ltog f1 on" id="lt1" onclick="togLayer(1)">1F ●</button>
+            <button class="ltog f2 on" id="lt2" onclick="togLayer(2)">2F ●</button>
+          </div>
+          <div class="cats">
+            <button class="cat on" onclick="setCat('all',this)">All</button>
+            <button class="cat" onclick="setCat('food',this)">🍽 Food</button>
+            <button class="cat" onclick="setCat('fashion',this)">👗 Fashion</button>
+            <button class="cat" onclick="setCat('elec',this)">💻 Tech</button>
+            <button class="cat" onclick="setCat('ent',this)">🎬 Fun</button>
+            <button class="cat" onclick="setCat('svc',this)">🏧 Services</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STORES PANEL -->
+      <div class="tab-panel show" id="panel-stores">
+        <div class="slist-inner" id="slist"></div>
+      </div>
+
+      <!-- HISTORY PANEL -->
+      <div class="tab-panel" id="panel-hist">
+        <div class="hist-wrap" id="hist-wrap">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <!-- MY LOCATION PANEL -->
+      <div class="tab-panel" id="panel-loc">
+        <div class="hist-wrap">
+          <div style="font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:2px;padding:4px 0 8px;">GATES & CHECKPOINTS</div>
+          <div id="loc-gate-opts"></div>
+          <div style="font-family:var(--mono);font-size:8px;color:var(--t3);letter-spacing:2px;padding:10px 0 8px;">PICK A STORE AS START</div>
+          <div id="loc-store-opts"></div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--t3);margin-top:10px;padding:8px;background:var(--s2);border-radius:6px;border:1px dashed var(--b1);line-height:1.5;">
+            💡 Or switch to <b style="color:var(--tx)">Stores tab</b> and tap 📍 next to any store · You can also click the map directly
+          </div>
+        </div>
+      </div>
+
+      <!-- NAV PANEL (always at bottom) -->
+      <div class="np hide" id="np">
+        <div class="np-ttl">ACTIVE ROUTE</div>
+        <div class="np-rt">
+          <div class="np-nd fn" onclick="switchTab('loc')" title="Change start">
+            <div class="np-nl">FROM</div>
+            <div class="np-nv" id="np-from">Gate A</div>
+          </div>
+          <div class="np-arr">→</div>
+          <div class="np-nd tn">
+            <div class="np-nl">TO</div>
+            <div class="np-nv" id="np-dest">—</div>
+          </div>
+        </div>
+        <div class="np-ss">
+          <div class="np-s"><div class="np-sv" id="np-t">—</div><div class="np-sl">min</div></div>
+          <div class="np-s"><div class="np-sv" id="np-d">—</div><div class="np-sl">meters</div></div>
+          <div class="np-s"><div class="np-sv" id="np-n">—</div><div class="np-sl">nodes</div></div>
+        </div>
+        <button class="np-btn" id="np-wb" onclick="togWalk()">▶ START WALK</button>
+        <div class="voice-toggle-row">
+          <span class="voice-toggle-icon">🔊</span>
+          <span class="voice-toggle-label">Voice guidance</span>
+          <button class="voice-toggle-btn" id="voice-toggle-btn" onclick="toggleVoiceEnabled()">OFF</button>
+        </div>
+        <div class="np-stps" id="np-stps"></div>
+      </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="mwrap" id="mwrap">
+      <canvas id="cv"></canvas>
+      <div class="loc-mode-bar" id="loc-mode-bar">📍 Click map to drop your location pin</div>
+      <div class="vms">
+        <button class="vm on" id="vm-flat" onclick="setVM('flat',this)">FLAT</button>
+        <button class="vm" id="vm-iso" onclick="setVM('iso',this)">ISO 3D</button>
+        <button class="vm" id="vm-xpl" onclick="setVM('explode',this)">EXPLODE</button>
+      </div>
+      <div class="zcs">
+        <button class="zc" onclick="doZoom(1.25)">+</button>
+        <button class="zc" onclick="doZoom(0.8)">−</button>
+        <button class="zc" style="font-size:12px" onclick="resetCam()">⌂</button>
+      </div>
+      <div class="leg">
+        <div class="leg-t">FLOORS</div>
+        <div class="leg-r"><div class="leg-sw" style="background:rgba(56,245,192,.55)"></div>Ground</div>
+        <div class="leg-r"><div class="leg-sw" style="background:rgba(74,158,255,.55)"></div>First</div>
+        <div class="leg-r"><div class="leg-sw" style="background:rgba(160,122,255,.55)"></div>Second</div>
+        <div class="leg-sep"></div>
+        <div class="leg-r"><div style="width:8px;height:8px;border-radius:50%;background:var(--ac)"></div>You</div>
+        <div class="leg-r"><div style="width:8px;height:8px;border-radius:50%;background:var(--am)"></div>Visited</div>
+      </div>
+      <!-- VOICE BAR -->
+      <div class="voice-bar" id="voice-bar">
+        <div class="vb-top">
+          <div class="vb-icon" id="vb-icon">🔊</div>
+          <div class="vb-step" id="vb-step">Starting navigation…</div>
+        </div>
+        <div class="vb-progress">
+          <div class="vb-dots" id="vb-dots"></div>
+          <div class="vb-count" id="vb-count"></div>
+        </div>
+        <div class="vb-controls">
+          <button class="vb-btn" onclick="voiceRepeat()">↺ Repeat</button>
+          <button class="vb-btn" onclick="voicePrev()">‹ Prev</button>
+          <button class="vb-btn" onclick="voiceNext()">Next ›</button>
+          <button class="vb-btn mute" id="vb-mute-btn" onclick="toggleMute()">🔇 Mute</button>
+          <button class="vb-btn" onclick="stopVoiceNav()">✕ Stop</button>
+        </div>
+      </div>
+
+      <div class="tt" id="tt">
+        <div class="tt-n" id="tt-n"></div>
+        <div class="tt-m" id="tt-m"></div>
+        <div class="tt-hint" id="tt-hint"></div>
+      </div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTANTS & DATA
+// ═══════════════════════════════════════════════════════
+const CC={food:{fill:[255,193,74],stroke:'#ffc14a'},fashion:{fill:[255,110,176],stroke:'#ff6eb0'},elec:{fill:[74,158,255],stroke:'#4a9eff'},ent:{fill:[56,245,192],stroke:'#38f5c0'},svc:{fill:[160,122,255],stroke:'#a07aff'}};
+const FC=['#38f5c0','#4a9eff','#a07aff'];
+const FN=['Ground Floor','First Floor','Second Floor'];
+const FA=['GF','1F','2F'];
+const MW=780,MH=480,MX=30,MY=30;
+const CL={food:'Food',fashion:'Fashion',elec:'Electronics',ent:'Entertainment',svc:'Services'};
+
+const STORES=[
+  {id:'gf1', n:"McDonald's",     c:'food',    f:0,x:90, y:110,w:100,h:70, e:'🍔',t:'8AM–11PM', o:true},
+  {id:'gf2', n:'KFC',            c:'food',    f:0,x:210,y:110,w:100,h:70, e:'🍗',t:'8AM–11PM', o:true},
+  {id:'gf3', n:'Zara',           c:'fashion', f:0,x:340,y:85, w:120,h:90, e:'👗',t:'10AM–9PM', o:true},
+  {id:'gf4', n:'H&M',            c:'fashion', f:0,x:478,y:85, w:110,h:90, e:'👕',t:'10AM–9PM', o:true},
+  {id:'gf5', n:'Croma',          c:'elec',    f:0,x:610,y:95, w:120,h:80, e:'📱',t:'10AM–9PM', o:false},
+  {id:'gf6', n:'Bata',           c:'fashion', f:0,x:90, y:325,w:100,h:80, e:'👠',t:'10AM–9PM', o:true},
+  {id:'gf7', n:"Domino's",       c:'food',    f:0,x:208,y:325,w:100,h:80, e:'🍕',t:'10AM–11PM',o:true},
+  {id:'gf8', n:'SBI ATM',        c:'svc',     f:0,x:338,y:355,w:80, h:60, e:'🏧',t:'24 hrs',   o:true},
+  {id:'gf9', n:'Washrooms GF',   c:'svc',     f:0,x:436,y:355,w:80, h:60, e:'🚻',t:'Always',   o:true},
+  {id:'gf10',n:'Reliance Trends',c:'fashion', f:0,x:538,y:305,w:130,h:110,e:'🛍',t:'10AM–9PM', o:true},
+  {id:'1f1', n:'Food Court',     c:'food',    f:1,x:78, y:85, w:160,h:110,e:'🍽',t:'10AM–10PM',o:true},
+  {id:'1f2', n:'Starbucks',      c:'food',    f:1,x:258,y:85, w:100,h:80, e:'☕',t:'7AM–10PM', o:true},
+  {id:'1f3', n:'Apple Store',    c:'elec',    f:1,x:378,y:85, w:120,h:80, e:'🍎',t:'10AM–9PM', o:true},
+  {id:'1f4', n:'Samsung',        c:'elec',    f:1,x:518,y:85, w:110,h:80, e:'📲',t:'10AM–9PM', o:true},
+  {id:'1f5', n:'Lifestyle',      c:'fashion', f:1,x:648,y:85, w:100,h:110,e:'✨',t:'10AM–9PM', o:true},
+  {id:'1f6', n:'Subway',         c:'food',    f:1,x:78, y:325,w:100,h:80, e:'🥪',t:'9AM–11PM', o:true},
+  {id:'1f7', n:'Archies',        c:'svc',     f:1,x:198,y:325,w:100,h:80, e:'🎁',t:'10AM–9PM', o:true},
+  {id:'1f8', n:'HDFC ATM',       c:'svc',     f:1,x:318,y:345,w:80, h:60, e:'🏦',t:'24 hrs',   o:true},
+  {id:'1f9', n:'Crossword',      c:'svc',     f:1,x:418,y:305,w:110,h:110,e:'📚',t:'10AM–9PM', o:false},
+  {id:'1f10',n:'Max Fashion',    c:'fashion', f:1,x:548,y:285,w:130,h:130,e:'👔',t:'10AM–9PM', o:true},
+  {id:'2f1', n:'PVR Cinemas',    c:'ent',     f:2,x:58, y:75, w:200,h:130,e:'🎬',t:'10AM–11PM',o:true},
+  {id:'2f2', n:'Game Zone',      c:'ent',     f:2,x:278,y:75, w:130,h:110,e:'🎮',t:'11AM–11PM',o:true},
+  {id:'2f3', n:'Timezone',       c:'ent',     f:2,x:428,y:75, w:110,h:110,e:'🎯',t:'11AM–10PM',o:true},
+  {id:'2f4', n:'Sky Bar & Café', c:'food',    f:2,x:558,y:75, w:160,h:110,e:'🍸',t:'12PM–12AM',o:true},
+  {id:'2f5', n:'Kids Zone',      c:'ent',     f:2,x:58, y:285,w:160,h:120,e:'🎡',t:'10AM–10PM',o:true},
+  {id:'2f6', n:'Naturals Salon', c:'svc',     f:2,x:238,y:295,w:110,h:100,e:'💇',t:'10AM–8PM', o:true},
+  {id:'2f7', n:'Food Express',   c:'food',    f:2,x:368,y:305,w:100,h:90, e:'🥡',t:'11AM–10PM',o:true},
+  {id:'2f8', n:'Washrooms 2F',   c:'svc',     f:2,x:488,y:325,w:80, h:70, e:'🚻',t:'Always',   o:true},
+  {id:'2f9', n:'VR Arena',       c:'ent',     f:2,x:588,y:275,w:140,h:140,e:'🥽',t:'11AM–11PM',o:true},
+];
+
+const LOC_NODES=[
+  {id:'ga',  n:'Gate A',        e:'🚪',f:0,sub:'Main Entrance'},
+  {id:'gb',  n:'Gate B',        e:'🚪',f:0,sub:'East Wing'},
+  {id:'gc',  n:'Gate C',        e:'🚪',f:0,sub:'Parking'},
+  {id:'esc0',n:'Escalator GF',  e:'⬆', f:0,sub:'Ground → First'},
+  {id:'esc1',n:'Escalator 1F',  e:'⬆', f:1,sub:'First → Second'},
+  {id:'esc2',n:'Escalator 2F',  e:'⬆', f:2,sub:'Second Floor'},
+];
+
+// ═══════════════════════════════════════════════════════════════════
+// DENSE WAYPOINT GRAPH — every physical turn is an explicit node
+// Scale: 1 unit ≈ 0.55 m. Each store-branch has a corridor turnpoint.
+// ═══════════════════════════════════════════════════════════════════
+const G_RAW = {
+  // ── GROUND FLOOR ─────────────────────────────────────────────────
+  ga:        {x:30, y:255,f:0,label:'Gate A',                   c:['w0_ga']},
+  w0_ga:     {x:90, y:255,f:0,label:'entrance hall',            c:['ga','w0_cw1']},
+  gb:        {x:810,y:255,f:0,label:'Gate B',                   c:['w0_gb']},
+  w0_gb:     {x:750,y:255,f:0,label:'east entrance',            c:['gb','w0_ce2']},
+
+  // GF horizontal corridor waypoints (y=255)
+  w0_cw1:    {x:140,y:255,f:0,label:'west corridor start',      c:['w0_ga','w0_cw2']},
+  w0_cw2:    {x:260,y:255,f:0,label:'corridor near KFC',        c:['w0_cw1','w0_mid']},
+  w0_mid:    {x:420,y:255,f:0,label:'main junction',            c:['w0_cw2','w0_ce1','w0_esc_s']},
+  w0_ce1:    {x:533,y:255,f:0,label:'east corridor',            c:['w0_mid','w0_ce2']},
+  w0_ce2:    {x:670,y:255,f:0,label:'far east corridor',        c:['w0_ce1','w0_gb']},
+
+  // GF escalator branch (south from junction)
+  w0_esc_s:  {x:420,y:355,f:0,label:'escalator passage',       c:['w0_mid','esc0']},
+  esc0:      {x:420,y:435,f:0,label:'Escalator Ground Floor',  c:['w0_esc_s','esc1']},
+
+  // GF store turnpoints + entrances (north, y=145-110)
+  w0_t1:     {x:140,y:255,f:0,label:'turn to McDonald\'s',     c:['w0_cw1','gf1']},
+  gf1:       {x:140,y:145,f:0,label:'McDonald\'s',              c:['w0_t1']},
+  w0_t2:     {x:260,y:255,f:0,label:'turn to KFC',              c:['w0_cw2','gf2']},
+  gf2:       {x:260,y:145,f:0,label:'KFC',                      c:['w0_t2']},
+  w0_t3:     {x:400,y:255,f:0,label:'turn to Zara',             c:['w0_mid','gf3']},
+  gf3:       {x:400,y:130,f:0,label:'Zara',                     c:['w0_t3']},
+  w0_t4:     {x:533,y:255,f:0,label:'turn to H&M',              c:['w0_ce1','gf4']},
+  gf4:       {x:533,y:130,f:0,label:'H&M',                      c:['w0_t4']},
+  w0_t5:     {x:670,y:255,f:0,label:'turn to Croma',            c:['w0_ce2','gf5']},
+  gf5:       {x:670,y:135,f:0,label:'Croma',                    c:['w0_t5']},
+
+  // GF store turnpoints + entrances (south, y=345-385)
+  w0_t6:     {x:140,y:255,f:0,label:'turn to Bata',             c:['w0_cw1','gf6']},
+  gf6:       {x:140,y:365,f:0,label:'Bata',                     c:['w0_t6']},
+  w0_t7:     {x:260,y:255,f:0,label:'turn to Domino\'s',        c:['w0_cw2','gf7']},
+  gf7:       {x:260,y:365,f:0,label:"Domino's",                 c:['w0_t7']},
+  w0_t8:     {x:378,y:255,f:0,label:'turn to SBI ATM',          c:['w0_mid','gf8']},
+  gf8:       {x:378,y:385,f:0,label:'SBI ATM',                  c:['w0_t8']},
+  w0_t9:     {x:476,y:255,f:0,label:'turn to Washrooms',        c:['w0_mid','gf9']},
+  gf9:       {x:476,y:385,f:0,label:'Washrooms GF',             c:['w0_t9']},
+  w0_t10:    {x:603,y:255,f:0,label:'turn to Reliance Trends',  c:['w0_ce1','gf10']},
+  gf10:      {x:603,y:360,f:0,label:'Reliance Trends',          c:['w0_t10']},
+
+  // ── FIRST FLOOR ──────────────────────────────────────────────────
+  esc1:      {x:420,y:435,f:1,label:'Escalator First Floor',   c:['esc0','w1_esc_n','esc2']},
+  w1_esc_n:  {x:420,y:350,f:1,label:'escalator top corridor',  c:['esc1','w1_mid']},
+
+  // 1F horizontal corridor (y=255)
+  w1_mid:    {x:420,y:255,f:1,label:'1F main junction',        c:['w1_esc_n','w1_cw1','w1_ce1']},
+  w1_cw1:    {x:308,y:255,f:1,label:'1F corridor near Starbucks',c:['w1_mid','w1_cw2']},
+  w1_cw2:    {x:168,y:255,f:1,label:'1F west end',             c:['w1_cw1']},
+  w1_ce1:    {x:573,y:255,f:1,label:'1F east corridor',        c:['w1_mid','w1_ce2']},
+  w1_ce2:    {x:672,y:255,f:1,label:'1F far east',             c:['w1_ce1']},
+
+  // 1F north store turnpoints + entrances
+  w1_t1:     {x:168,y:255,f:1,label:'turn to Food Court',      c:['w1_cw2','1f1']},
+  '1f1':     {x:158,y:140,f:1,label:'Food Court',              c:['w1_t1']},
+  w1_t2:     {x:308,y:255,f:1,label:'turn to Starbucks',       c:['w1_cw1','1f2']},
+  '1f2':     {x:308,y:125,f:1,label:'Starbucks',               c:['w1_t2']},
+  w1_t3:     {x:438,y:255,f:1,label:'turn to Apple Store',     c:['w1_mid','1f3']},
+  '1f3':     {x:438,y:125,f:1,label:'Apple Store',             c:['w1_t3']},
+  w1_t4:     {x:573,y:255,f:1,label:'turn to Samsung',         c:['w1_ce1','1f4']},
+  '1f4':     {x:573,y:125,f:1,label:'Samsung',                 c:['w1_t4']},
+  w1_t5:     {x:672,y:255,f:1,label:'turn to Lifestyle',       c:['w1_ce2','1f5']},
+  '1f5':     {x:698,y:140,f:1,label:'Lifestyle',               c:['w1_t5']},
+
+  // 1F south store turnpoints + entrances
+  w1_t6:     {x:168,y:255,f:1,label:'turn to Subway',          c:['w1_cw2','1f6']},
+  '1f6':     {x:128,y:365,f:1,label:'Subway',                  c:['w1_t6']},
+  w1_t7:     {x:308,y:255,f:1,label:'turn to Archies',         c:['w1_cw1','1f7']},
+  '1f7':     {x:248,y:365,f:1,label:'Archies',                 c:['w1_t7']},
+  w1_t8:     {x:420,y:255,f:1,label:'turn to HDFC ATM',        c:['w1_mid','1f8']},
+  '1f8':     {x:358,y:375,f:1,label:'HDFC ATM',                c:['w1_t8']},
+  w1_t9:     {x:533,y:255,f:1,label:'turn to Crossword',       c:['w1_ce1','1f9']},
+  '1f9':     {x:473,y:360,f:1,label:'Crossword',               c:['w1_t9']},
+  w1_t10:    {x:672,y:255,f:1,label:'turn to Max Fashion',     c:['w1_ce2','1f10']},
+  '1f10':    {x:613,y:350,f:1,label:'Max Fashion',             c:['w1_t10']},
+
+  // ── SECOND FLOOR ─────────────────────────────────────────────────
+  esc2:      {x:420,y:435,f:2,label:'Escalator Second Floor',  c:['esc1','w2_esc_n']},
+  w2_esc_n:  {x:420,y:350,f:2,label:'2F escalator top',       c:['esc2','w2_mid']},
+
+  w2_mid:    {x:420,y:255,f:2,label:'2F main junction',        c:['w2_esc_n','w2_cw1','w2_ce1']},
+  w2_cw1:    {x:280,y:255,f:2,label:'2F west corridor',        c:['w2_mid','w2_cw2']},
+  w2_cw2:    {x:168,y:255,f:2,label:'2F far west',             c:['w2_cw1']},
+  w2_ce1:    {x:530,y:255,f:2,label:'2F east corridor',        c:['w2_mid','w2_ce2']},
+  w2_ce2:    {x:660,y:255,f:2,label:'2F far east',             c:['w2_ce1']},
+
+  // 2F north store turnpoints + entrances
+  w2_t1:     {x:158,y:255,f:2,label:'turn to PVR Cinemas',     c:['w2_cw2','2f1']},
+  '2f1':     {x:158,y:140,f:2,label:'PVR Cinemas',             c:['w2_t1']},
+  w2_t2:     {x:343,y:255,f:2,label:'turn to Game Zone',       c:['w2_mid','2f2']},
+  '2f2':     {x:343,y:130,f:2,label:'Game Zone',               c:['w2_t2']},
+  w2_t3:     {x:483,y:255,f:2,label:'turn to Timezone',        c:['w2_ce1','2f3']},
+  '2f3':     {x:483,y:130,f:2,label:'Timezone',                c:['w2_t3']},
+  w2_t4:     {x:638,y:255,f:2,label:'turn to Sky Bar',         c:['w2_ce2','2f4']},
+  '2f4':     {x:638,y:130,f:2,label:'Sky Bar & Café',          c:['w2_t4']},
+
+  // 2F south store turnpoints + entrances
+  w2_t5:     {x:138,y:255,f:2,label:'turn to Kids Zone',       c:['w2_cw2','2f5']},
+  '2f5':     {x:138,y:345,f:2,label:'Kids Zone',               c:['w2_t5']},
+  w2_t6:     {x:293,y:255,f:2,label:'turn to Naturals Salon',  c:['w2_cw1','2f6']},
+  '2f6':     {x:293,y:345,f:2,label:'Naturals Salon',          c:['w2_t6']},
+  w2_t7:     {x:420,y:255,f:2,label:'turn to Food Express',    c:['w2_mid','2f7']},
+  '2f7':     {x:418,y:350,f:2,label:'Food Express',            c:['w2_t7']},
+  w2_t8:     {x:528,y:255,f:2,label:'turn to Washrooms 2F',   c:['w2_ce1','2f8']},
+  '2f8':     {x:528,y:360,f:2,label:'Washrooms 2F',            c:['w2_t8']},
+  w2_t9:     {x:658,y:255,f:2,label:'turn to VR Arena',        c:['w2_ce2','2f9']},
+  '2f9':     {x:658,y:345,f:2,label:'VR Arena',                c:['w2_t9']},
+};
+const G = (()=>{
+  const g={};
+  Object.entries(G_RAW).forEach(([k,v])=>{g[k]={...v,c:[...v.c]};});
+  Object.entries(g).forEach(([k,v])=>{
+    v.c.forEach(nb=>{if(g[nb]&&!g[nb].c.includes(k))g[nb].c.push(k);});
+  });
+  return g;
+})();
+
+
+// ═══════════════════════════════════════════════════════
+// LOCATION HISTORY  (persisted in localStorage)
+// ═══════════════════════════════════════════════════════
+const HIST_KEY='mallnav_hist_v2';
+let visitHistory=[]; // [{id,n,e,c,f,nodeId,ts,duration,isGate}]
+let sessionStart=Date.now();
+
+function loadHistory(){
+  try{
+    const raw=localStorage.getItem(HIST_KEY);
+    if(raw)visitHistory=JSON.parse(raw);
+  }catch(e){visitHistory=[];}
+}
+function saveHistory(){
+  try{localStorage.setItem(HIST_KEY,JSON.stringify(visitHistory.slice(0,50)));}catch(e){}
+}
+function clearHistory(){
+  visitHistory=[];saveHistory();
+  buildHistoryPanel();updateHistBadge();
+}
+
+// Add a visit entry
+function recordVisit(entry){
+  // set duration on previous entry
+  if(visitHistory.length>0&&!visitHistory[0].duration){
+    visitHistory[0].duration=Math.round((Date.now()-visitHistory[0].ts)/60000);
+    if(visitHistory[0].duration<1)visitHistory[0].duration=null;
+  }
+  visitHistory.unshift({...entry,ts:Date.now(),duration:null});
+  saveHistory();
+  updateHistBadge();
+  buildHistoryPanel();
+}
+
+function updateHistBadge(){
+  const b=document.getElementById('hist-badge');
+  const cnt=visitHistory.length;
+  b.textContent=cnt>9?'9+':cnt;
+  b.classList.toggle('show',cnt>0);
+}
+
+// Infer current location = last visited destination
+function inferredCurrentLoc(){
+  if(visitHistory.length>0){
+    const last=visitHistory[0];
+    return{
+      id:last.nodeId||last.id,
+      n:last.n,f:last.f,
+      x:G[last.nodeId||last.id]?.x||400,
+      y:G[last.nodeId||last.id]?.y||255,
+      custom:false,fromHistory:true
+    };
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════
+// APP STATE
+// ═══════════════════════════════════════════════════════
+let userLoc={id:'ga',n:'Gate A',f:0,x:15,y:255,custom:false};
+let customPin=null;
+let vm='flat',layers=[true,true,true],cat='all',srch='';
+let selStore=null,navTarget=null,route=[];
+let walking=false,walkStep=0,walkTimer=null;
+let hovStore=null,dirty=true,lastRaf=0;
+let locMode=false;
+let activeTab='stores';
+const LERP=0.14;
+let cam={x:0,y:0,s:1,tx:0,ty:0,ts:1};
+
+// ═══════════════════════════════════════════════════════
+// QR FLOW
+// ═══════════════════════════════════════════════════════
+const QR_PAT=[1,1,1,0,1,0,1,1,1,1,0,1,0,0,0,1,0,1,1,0,1,1,1,0,1,0,1,1,0,0,1,0,1,0,0,0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0,1,1,1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,0,1,1,1,0,1,1,1];
+function buildQR(){
+  const g=document.getElementById('qr-grid');
+  QR_PAT.forEach(v=>{const d=document.createElement('div');d.className='qr-cell'+(v?'':' e');g.appendChild(d);});
+}
+let scanStarted=false;
+function startScan(){
+  if(scanStarted)return;scanStarted=true;
+  document.getElementById('qr-cta').style.display='none';
+  document.querySelector('.qr-hint').style.display='none';
+  document.getElementById('qr-ttl').textContent='QR Code Detected ✓';
+  document.getElementById('qr-sub').textContent='Select your entry gate to continue';
+  setTimeout(()=>document.getElementById('gate-sel').classList.add('show'),350);
+}
+function pickGate(g,btn){
+  document.querySelectorAll('.gbtn').forEach(b=>b.classList.remove('picked'));
+  btn.classList.add('picked');
+  const gmap={A:{id:'ga',n:'Gate A',f:0},B:{id:'gb',n:'Gate B',f:0},C:{id:'gc',n:'Gate C',f:0}};
+  const gl=gmap[g];
+  userLoc={...gl,x:G[gl.id].x,y:G[gl.id].y,custom:false};
+  setTimeout(()=>{document.getElementById('gate-sel').classList.remove('show');startProg(g);},300);
+}
+const PSTEPS=['Connecting to CrystalPalace-WiFi…','Authenticating device…','Fetching mall map…','Detecting your position…','Loading store directory…','All set!'];
+function startProg(gate){
+  document.getElementById('qr-prog').classList.add('show');
+  let pct=0,si=0;
+  const iv=setInterval(()=>{
+    pct+=Math.random()*13+6;
+    if(pct>=100){pct=100;clearInterval(iv);setTimeout(()=>launchApp(gate),450);}
+    const ni=Math.min(Math.floor(pct/18),PSTEPS.length-1);
+    if(ni!==si){si=ni;document.getElementById('prog-lbl').textContent=PSTEPS[si];}
+    document.getElementById('prog-fill').style.width=pct+'%';
+    document.getElementById('prog-pct').textContent=Math.round(pct)+'%';
+  },180);
+}
+function launchApp(gate){
+  document.getElementById('qrs').classList.add('out');
+  setTimeout(()=>{
+    document.getElementById('qrs').style.display='none';
+    const app=document.getElementById('app');app.style.display='flex';
+    document.getElementById('bar-gate').textContent='GATE-'+gate;
+    loadHistory();
+    // record entry
+    recordVisit({id:userLoc.id,n:userLoc.n,e:'🚪',c:'svc',f:userLoc.f,nodeId:userLoc.id,isGate:true});
+    updateUserPosLabel();
+    buildSidebar();buildLocPanels();buildHistoryPanel();updateHistBadge();
+    initVoice();
+    resize();requestAnimationFrame(loop);
+  },650);
+}
+
+// ═══════════════════════════════════════════════════════
+// CANVAS
+// ═══════════════════════════════════════════════════════
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let W=0,H=0;
+function resize(){
+  const wr=document.getElementById('mwrap'),dpr=window.devicePixelRatio||1;
+  W=wr.clientWidth;H=wr.clientHeight;
+  cv.width=W*dpr;cv.height=H*dpr;
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  resetCam(false);dirty=true;
+}
+window.addEventListener('resize',resize);
+
+// ═══════════════════════════════════════════════════════
+// LOOP
+// ═══════════════════════════════════════════════════════
+function loop(ts){
+  requestAnimationFrame(loop);
+  const dt=Math.min((ts-lastRaf)/16.67,4);lastRaf=ts;
+  const dx=cam.tx-cam.x,dy=cam.ty-cam.y,ds=cam.ts-cam.s;
+  if(Math.abs(dx)>.05||Math.abs(dy)>.05||Math.abs(ds)>.0005){
+    cam.x+=dx*(1-Math.pow(1-LERP,dt));cam.y+=dy*(1-Math.pow(1-LERP,dt));cam.s+=ds*(1-Math.pow(1-LERP,dt));dirty=true;
+  }
+  if(dirty||route.length>1||walking){render();dirty=false;}
+}
+
+// ═══════════════════════════════════════════════════════
+// COORDS
+// ═══════════════════════════════════════════════════════
+function w2s(wx,wy){return{x:W/2+(wx-MW/2)*cam.s+cam.x,y:H/2+(wy-MH/2)*cam.s+cam.y};}
+function s2w(sx,sy){return{x:(sx-W/2-cam.x)/cam.s+MW/2,y:(sy-H/2-cam.y)/cam.s+MH/2};}
+function flOff(f){
+  if(vm==='flat')return{dx:0,dy:0,a:1};
+  if(vm==='iso')return{dx:(2-f)*36*cam.s,dy:-(2-f)*48*cam.s,a:1};
+  return{dx:0,dy:(f-1)*(MH+50)*cam.s,a:1};
+}
+function toS(lx,ly,f){const b=w2s(lx,ly),o=flOff(f);return{x:b.x+o.dx,y:b.y+o.dy};}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function render(){
+  ctx.clearRect(0,0,W,H);
+  drawGrid();
+  const order=vm==='iso'?[2,1,0]:[0,1,2];
+  order.forEach(f=>{if(layers[f])drawFloor(f);});
+  drawBreadcrumbs();
+  if(route.length>1)drawRoute();
+  if(customPin)drawCustomPin();
+  drawUser();
+}
+function drawGrid(){
+  ctx.save();ctx.strokeStyle='rgba(80,120,200,0.04)';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=32){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=0;y<H;y+=32){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.restore();
+}
+function drawFloor(f){
+  const fc=['rgba(56,245,192,','rgba(74,158,255,','rgba(160,122,255,'][f];
+  const tl=toS(MX,MY,f),br=toS(MX+MW,MY+MH,f);
+  const sw=br.x-tl.x,sh=br.y-tl.y;
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,.28)';rrect(ctx,tl.x+4,tl.y+4,sw,sh,12*cam.s);ctx.fill();
+  ctx.fillStyle=fc+'0.05)';ctx.strokeStyle=fc+'0.2)';ctx.lineWidth=1.5;
+  rrect(ctx,tl.x,tl.y,sw,sh,12*cam.s);ctx.fill();ctx.stroke();
+  const cht=toS(MX,230,f),chb=toS(MX+MW,290,f);
+  ctx.fillStyle=fc+'0.06)';ctx.fillRect(cht.x,cht.y,chb.x-cht.x,chb.y-cht.y);
+  const cvt=toS(370,MY,f),cvb=toS(430,MY+MH,f);
+  ctx.fillStyle=fc+'0.04)';ctx.fillRect(cvt.x,cvt.y,cvb.x-cvt.x,cvb.y-cvt.y);
+  const cl=toS(MX+MW/2,260,f);
+  ctx.fillStyle=fc+'0.18)';ctx.font=`${clamp(9*cam.s,7,11)}px IBM Plex Mono`;
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('MAIN CORRIDOR',cl.x,cl.y);
+  drawEsc(f,370,400,FC[f]);
+  if(f===0){drawGate(f,MX-16,237,'A',FC[f]);drawGate(f,MX+MW+2,237,'B',FC[f]);}
+  const fl=toS(MX+MW-6,MY+MH-8,f);
+  ctx.fillStyle=fc+'0.38)';ctx.font=`${clamp(10*cam.s,8,12)}px IBM Plex Mono`;
+  ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(FN[f].toUpperCase(),fl.x,fl.y);
+  ctx.restore();
+  getFiltered().filter(s=>s.f===f).forEach(s=>drawStore(s));
+}
+function drawStore(s){
+  const isSel=selStore?.id===s.id,isTgt=navTarget?.id===s.id,isHov=hovStore?.id===s.id;
+  const wasVisited=visitHistory.some(h=>h.id===s.id);
+  const cc=CC[s.c]||CC.svc;const[r,g,b]=cc.fill;
+  const tl=toS(s.x,s.y,s.f);if(!tl)return;
+  const sw=s.w*cam.s,sh=s.h*cam.s;
+  ctx.save();
+  ctx.globalAlpha=(selStore&&!isSel&&!isTgt)?0.3:1;
+  ctx.fillStyle='rgba(0,0,0,.36)';rrect(ctx,tl.x+2,tl.y+2,sw,sh,7*cam.s);ctx.fill();
+  ctx.fillStyle=`rgba(${r},${g},${b},${s.o?.18:.07})`;
+  ctx.strokeStyle=isTgt?'#38f5c0':`rgba(${r},${g},${b},${isSel||isHov?.9:.35})`;
+  ctx.lineWidth=isTgt?2.5*cam.s:isSel||isHov?2*cam.s:1;
+  rrect(ctx,tl.x,tl.y,sw,sh,7*cam.s);ctx.fill();ctx.stroke();
+  if(!s.o){ctx.fillStyle='rgba(6,8,16,.46)';rrect(ctx,tl.x,tl.y,sw,sh,7*cam.s);ctx.fill();}
+  if(isTgt||isSel){ctx.save();ctx.shadowColor=isTgt?'#38f5c0':cc.stroke;ctx.shadowBlur=14;ctx.strokeStyle=isTgt?'#38f5c0':cc.stroke;ctx.lineWidth=2;rrect(ctx,tl.x,tl.y,sw,sh,7*cam.s);ctx.stroke();ctx.restore();}
+  if(cam.s>.46){const ics=clamp(16*cam.s,9,23);ctx.font=`${ics}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.globalAlpha=(s.o?1:.4)*ctx.globalAlpha;ctx.fillText(s.e,tl.x+sw/2,tl.y+sh/2-7*cam.s);}
+  if(cam.s>.5){const fs=clamp(9*cam.s,7,13);ctx.font=`600 ${fs}px Syne`;ctx.fillStyle=s.o?'rgba(220,232,255,.88)':'rgba(220,232,255,.33)';ctx.textAlign='center';ctx.textBaseline='alphabetic';const maxW=sw-8;let nm=s.n;while(ctx.measureText(nm).width>maxW&&nm.length>3)nm=nm.slice(0,-1);if(nm!==s.n)nm+='…';ctx.fillText(nm,tl.x+sw/2,tl.y+sh-8*cam.s);}
+  // visited checkmark
+  if(wasVisited&&cam.s>.5){
+    ctx.save();ctx.globalAlpha=.7;
+    ctx.fillStyle='rgba(255,193,74,.9)';ctx.font=`${clamp(10*cam.s,7,14)}px serif`;ctx.textAlign='left';ctx.textBaseline='top';
+    ctx.fillText('✓',tl.x+4,tl.y+3);ctx.restore();
+  }
+  const rd2=clamp(3*cam.s,2,5);ctx.beginPath();ctx.arc(tl.x+sw-rd2-3,tl.y+rd2+3,rd2,0,Math.PI*2);ctx.fillStyle=s.o?FC[s.f]:'#ff5a5a';ctx.fill();
+  ctx.restore();
+}
+
+// ─── BREADCRUMBS — faint dots at visited store centers ───
+function drawBreadcrumbs(){
+  const visited=visitHistory.filter(h=>!h.isGate).slice(0,20);
+  if(!visited.length)return;
+  visited.forEach((h,i)=>{
+    const s=STORES.find(x=>x.id===h.id);if(!s||!layers[s.f])return;
+    const p=toS(s.x+s.w/2,s.y+s.h/2,s.f);
+    const age=i/visited.length;
+    ctx.save();
+    ctx.globalAlpha=clamp(.5-age*.35,.08,.5);
+    ctx.beginPath();ctx.arc(p.x,p.y,clamp(6*cam.s,3,9),0,Math.PI*2);
+    ctx.fillStyle='#ffc14a';ctx.fill();
+    ctx.restore();
+  });
+}
+
+function drawEsc(f,lx,ly,col){
+  const p=toS(lx,ly,f);if(!p)return;const sw=58*cam.s,sh=34*cam.s;
+  ctx.save();ctx.fillStyle=col+'22';ctx.strokeStyle=col;ctx.lineWidth=1;
+  rrect(ctx,p.x,p.y,sw,sh,3*cam.s);ctx.fill();ctx.stroke();
+  ctx.fillStyle=col;ctx.font=`${clamp(9*cam.s,7,12)}px IBM Plex Mono`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('ESC ↑↓',p.x+sw/2,p.y+sh/2);ctx.restore();
+}
+function drawGate(f,lx,ly,lbl,col){
+  const p=toS(lx,ly,f);if(!p)return;const gw=18*cam.s,gh=38*cam.s;
+  ctx.save();ctx.fillStyle=col+'18';ctx.strokeStyle=col;ctx.lineWidth=1.5;
+  rrect(ctx,p.x,p.y,gw,gh,3*cam.s);ctx.fill();ctx.stroke();
+  ctx.fillStyle=col;ctx.font=`bold ${clamp(9*cam.s,7,12)}px IBM Plex Mono`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('G'+lbl,p.x+gw/2,p.y+gh/2);ctx.restore();
+}
+function drawCustomPin(){
+  if(!layers[customPin.f])return;
+  const p=toS(customPin.x,customPin.y,customPin.f);
+  const t=performance.now(),pulse=(Math.sin(t/600)+1)/2;
+  ctx.save();
+  ctx.beginPath();ctx.arc(p.x,p.y,(16+pulse*5)*cam.s,0,Math.PI*2);ctx.fillStyle=`rgba(255,193,74,${0.07+pulse*.04})`;ctx.fill();
+  ctx.beginPath();ctx.arc(p.x,p.y-10*cam.s,8*cam.s,0,Math.PI*2);ctx.fillStyle='#ffc14a';ctx.fill();ctx.strokeStyle='rgba(255,193,74,.35)';ctx.lineWidth=2*cam.s;ctx.stroke();
+  ctx.beginPath();ctx.moveTo(p.x,p.y-2*cam.s);ctx.lineTo(p.x,p.y+2*cam.s);ctx.strokeStyle='#ffc14a';ctx.lineWidth=2*cam.s;ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();ctx.arc(p.x,p.y-10*cam.s,3*cam.s,0,Math.PI*2);ctx.fillStyle='#040810';ctx.fill();
+  ctx.restore();
+}
+function drawUser(){
+  let ux,uy,uf;
+  if(walking&&route.length){const idx=Math.min(Math.floor(walkStep),route.length-1);const n=G[route[idx]];if(!n)return;ux=n.x;uy=n.y;uf=n.f;}
+  else if(customPin)return;
+  else{const n=G[userLoc.id];if(!n)return;ux=n.x;uy=n.y;uf=n.f;}
+  if(!layers[uf])return;
+  const p=toS(ux,uy,uf);const t=performance.now(),pulse=(Math.sin(t/500)+1)/2;
+  ctx.save();
+  ctx.beginPath();ctx.arc(p.x,p.y,(13+pulse*4)*cam.s,0,Math.PI*2);ctx.fillStyle=`rgba(56,245,192,${.06+pulse*.05})`;ctx.fill();
+  ctx.beginPath();ctx.arc(p.x,p.y,8*cam.s,0,Math.PI*2);ctx.fillStyle='rgba(56,245,192,.17)';ctx.fill();
+  ctx.beginPath();ctx.arc(p.x,p.y,5*cam.s,0,Math.PI*2);ctx.fillStyle='#38f5c0';ctx.fill();
+  ctx.beginPath();ctx.arc(p.x,p.y,2*cam.s,0,Math.PI*2);ctx.fillStyle='#040810';ctx.fill();
+  ctx.restore();
+}
+function drawRoute(){
+  const t=performance.now();let segs=[],cur=null;
+  route.forEach(k=>{const n=G[k];if(!n||!layers[n.f])return;if(!cur||cur.f!==n.f){if(cur)segs.push(cur);cur={f:n.f,pts:[]};}cur.pts.push(toS(n.x,n.y,n.f));});
+  if(cur)segs.push(cur);
+  segs.forEach(seg=>{
+    if(seg.pts.length<2)return;const fc=FC[seg.f];
+    ctx.save();
+    ctx.strokeStyle=fc;ctx.lineWidth=8*cam.s;ctx.globalAlpha=.07;ctx.lineCap='round';ctx.lineJoin='round';ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(seg.pts[0].x,seg.pts[0].y);seg.pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+    ctx.lineWidth=2.5*cam.s;ctx.globalAlpha=.85;ctx.setLineDash([7*cam.s,4*cam.s]);ctx.lineDashOffset=-(t/80)%(11*cam.s);
+    ctx.beginPath();ctx.moveTo(seg.pts[0].x,seg.pts[0].y);seg.pts.slice(1).forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    seg.pts.forEach((p,i)=>{if(i===0||i===seg.pts.length-1)return;ctx.beginPath();ctx.arc(p.x,p.y,2.5*cam.s,0,Math.PI*2);ctx.fillStyle=fc;ctx.fill();});
+    ctx.restore();
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// DIJKSTRA
+// ═══════════════════════════════════════════════════════
+function dijkstra(start,end){
+  const dist={},prev={},keys=Object.keys(G);
+  keys.forEach(k=>dist[k]=Infinity);dist[start]=0;
+  const unvis=new Set(keys);
+  while(unvis.size){
+    let u=null;unvis.forEach(k=>{if(u===null||dist[k]<dist[u])u=k;});
+    if(!u||u===end||dist[u]===Infinity)break;
+    unvis.delete(u);const nu=G[u];
+    (nu.c||[]).forEach(v=>{const nv=G[v];if(!nv)return;const d=dist[u]+Math.hypot(nu.x-nv.x,nu.y-nv.y)+(nu.f!==nv.f?250:0);if(d<dist[v]){dist[v]=d;prev[v]=u;}});
+  }
+  const path=[];let c=end;const seen=new Set();while(c&&!seen.has(c)){seen.add(c);path.unshift(c);c=prev[c];}
+  return path[0]===start?path:null;
+}
+function nearestNode(wx,wy,floor){
+  let best=null,bd=Infinity;
+  Object.entries(G).forEach(([k,n])=>{if(n.f!==floor)return;const d=Math.hypot(n.x-wx,n.y-wy);if(d<bd){bd=d;best=k;}});
+  return best;
+}
+
+// ═══════════════════════════════════════════════════════
+// POINTER
+// ═══════════════════════════════════════════════════════
+let ptr={down:false,x:0,y:0,px:0,py:0,moved:false},vel={x:0,y:0,ts:0},mRaf=null;
+cv.addEventListener('pointerdown',e=>{
+  cv.setPointerCapture(e.pointerId);
+  ptr={down:true,x:e.clientX,y:e.clientY,px:e.clientX,py:e.clientY,moved:false};
+  vel={x:0,y:0,ts:performance.now()};
+  if(mRaf){cancelAnimationFrame(mRaf);mRaf=null;}cam.tx=cam.x;cam.ty=cam.y;
+});
+cv.addEventListener('pointermove',e=>{
+  if(!ptr.down){
+    const rect=cv.getBoundingClientRect(),hit=hitTest(e.clientX-rect.left,e.clientY-rect.top);
+    if(hit?.id!==hovStore?.id){hovStore=hit;dirty=true;updateTooltip(hit,e.clientX,e.clientY);}
+    else if(hit)updateTooltip(hit,e.clientX,e.clientY);return;
+  }
+  const dx=e.clientX-ptr.x,dy=e.clientY-ptr.y;
+  if(!ptr.moved&&Math.hypot(e.clientX-ptr.px,e.clientY-ptr.py)<4)return;
+  ptr.moved=true;const now=performance.now();
+  vel={x:dx/(now-vel.ts||1)*16,y:dy/(now-vel.ts||1)*16,ts:now};
+  ptr.x=e.clientX;ptr.y=e.clientY;cam.tx+=dx;cam.ty+=dy;cam.x=cam.tx;cam.y=cam.ty;dirty=true;
+});
+cv.addEventListener('pointerup',e=>{
+  if(!ptr.down)return;ptr.down=false;
+  if(!ptr.moved){
+    const rect=cv.getBoundingClientRect(),mx=e.clientX-rect.left,my=e.clientY-rect.top;
+    if(locMode){placePin(mx,my);return;}
+    const hit=hitTest(mx,my);
+    if(hit)selectStore(hit.id);else{selStore=null;dirty=true;}
+    return;
+  }
+  let vx=vel.x,vy=vel.y;
+  function fling(){vx*=.88;vy*=.88;if(Math.abs(vx)<.2&&Math.abs(vy)<.2){mRaf=null;return;}cam.tx+=vx;cam.ty+=vy;cam.x=cam.tx;cam.y=cam.ty;dirty=true;mRaf=requestAnimationFrame(fling);}
+  mRaf=requestAnimationFrame(fling);
+});
+cv.addEventListener('pointerleave',()=>{ptr.down=false;hovStore=null;dirty=true;document.getElementById('tt').style.display='none';});
+let lpd=0;
+cv.addEventListener('touchstart',e=>{if(e.touches.length===2)lpd=pd(e);},{passive:true});
+cv.addEventListener('touchmove',e=>{if(e.touches.length===2){e.preventDefault();const d=pd(e);if(lpd)zoomAt((e.touches[0].clientX+e.touches[1].clientX)/2,(e.touches[0].clientY+e.touches[1].clientY)/2,d/lpd);lpd=d;}},{passive:false});
+cv.addEventListener('touchend',()=>lpd=0,{passive:true});
+function pd(e){return Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}
+cv.addEventListener('wheel',e=>{e.preventDefault();const rect=cv.getBoundingClientRect();zoomAt(e.clientX-rect.left,e.clientY-rect.top,e.deltaY<0?1.08:.926);},{passive:false});
+function zoomAt(mx,my,f){const ns=clamp(cam.ts*f,.32,3.8),sd=ns/cam.ts;cam.tx=(cam.tx-(mx-W/2))*sd+(mx-W/2);cam.ty=(cam.ty-(my-H/2))*sd+(my-H/2);cam.ts=ns;dirty=true;}
+function doZoom(f){zoomAt(W/2,H/2,f);}
+
+function hitTest(mx,my){
+  for(const f of[2,1,0]){if(!layers[f])continue;
+    for(const s of getFiltered().filter(ss=>ss.f===f)){
+      const tl=toS(s.x,s.y,s.f);if(!tl)continue;const sw=s.w*cam.s,sh=s.h*cam.s;
+      if(mx>=tl.x&&mx<=tl.x+sw&&my>=tl.y&&my<=tl.y+sh)return s;
+    }
+  }return null;
+}
+function updateTooltip(s,ex,ey){
+  const tt=document.getElementById('tt');
+  if(!s){tt.style.display='none';return;}
+  document.getElementById('tt-n').textContent=s.n;
+  const wasVis=visitHistory.some(h=>h.id===s.id);
+  document.getElementById('tt-m').innerHTML=`<span>${FN[s.f]}</span><span style="color:${s.o?'var(--ac)':'var(--rd)'}">${s.o?'Open':'Closed'}</span>${wasVis?'<span style="color:var(--am)">✓ Visited</span>':''}`;
+  const hint=document.getElementById('tt-hint');
+  hint.className='tt-hint d';hint.textContent='→ btn to navigate · 📍 btn to set as location';
+  tt.style.display='block';
+  const wr=document.getElementById('mwrap').getBoundingClientRect();
+  let tx=ex-wr.left+14,ty=ey-wr.top-62;
+  if(tx+178>wr.width)tx-=188;if(ty<0)ty=10;
+  tt.style.left=tx+'px';tt.style.top=ty+'px';
+}
+
+// ═══════════════════════════════════════════════════════
+// LOCATION
+// ═══════════════════════════════════════════════════════
+function placePin(mx,my){
+  let hf=0;
+  for(let f=2;f>=0;f--){if(!layers[f])continue;const tl=toS(MX,MY,f),br=toS(MX+MW,MY+MH,f);if(mx>=tl.x&&mx<=br.x&&my>=tl.y&&my<=br.y){hf=f;break;}}
+  const wp=s2w(mx,my);const nk=nearestNode(wp.x,wp.y,hf);const nn=G[nk];
+  customPin={x:wp.x,y:wp.y,f:hf};
+  userLoc={id:nk,n:'Custom Pin',f:hf,x:nn.x,y:nn.y,custom:true};
+  updateUserPosLabel();if(navTarget)rebuildRoute();
+  setLocMode(false);dirty=true;
+}
+function setLocMode(on){
+  locMode=on;document.getElementById('loc-mode-bar').classList.toggle('show',on);
+  cv.style.cursor=on?'crosshair':'grab';
+}
+function setLocFromNode(nodeId){
+  const n=G[nodeId];if(!n)return;
+  const ln=LOC_NODES.find(l=>l.id===nodeId);
+  customPin=null;
+  userLoc={id:nodeId,n:ln?ln.n:nodeId,f:n.f,x:n.x,y:n.y,custom:false};
+  updateUserPosLabel();if(navTarget)rebuildRoute();
+  switchTab('stores');buildLocPanels();dirty=true;
+}
+function setLocFromStore(sid){
+  const s=STORES.find(x=>x.id===sid);if(!s)return;
+  const nk=nearestNode(s.x+s.w/2,s.y+s.h/2,s.f);const nn=G[nk];
+  customPin=null;
+  userLoc={id:nk,n:s.n,f:s.f,x:nn.x,y:nn.y,custom:false};
+  updateUserPosLabel();if(navTarget)rebuildRoute();
+  switchTab('stores');buildLocPanels();dirty=true;
+}
+
+// ─── Key: set location from last visited (history inference) ───
+function setLocFromHistory(histIdx){
+  const h=visitHistory[histIdx];if(!h)return;
+  if(h.isGate){setLocFromNode(h.nodeId||h.id);}
+  else setLocFromStore(h.id);
+}
+function continueFromLastVisit(){
+  // infer location = last destination, clear nav, ready for next search
+  const inferred=inferredCurrentLoc();
+  if(!inferred)return;
+  customPin=null;
+  userLoc=inferred;
+  navTarget=null;route=[];
+  document.getElementById('np').classList.add('hide');
+  updateUserPosLabel();buildSidebar();buildLocPanels();
+  showToast(`📍 Location set to: ${userLoc.n}`);
+  switchTab('stores');dirty=true;
+}
+
+function updateUserPosLabel(){
+  const nm=userLoc.n.length>15?userLoc.n.slice(0,14)+'…':userLoc.n;
+  document.getElementById('upos').textContent=`📍 ${nm} · ${FA[userLoc.f]} ↗`;
+  document.getElementById('np-from').textContent=userLoc.n;
+}
+
+// ═══════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════
+function selectStore(id){
+  const s=STORES.find(x=>x.id===id);if(!s)return;
+  selStore=s;dirty=true;
+  document.querySelectorAll('.si').forEach(el=>el.classList.toggle('sel',el.dataset.id===id));
+  document.querySelector(`.si[data-id="${id}"]`)?.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function setNav(id){
+  const s=STORES.find(x=>x.id===id);if(!s)return;
+  navTarget=s;selStore=s;rebuildRoute();
+  document.querySelectorAll('.si').forEach(el=>{el.classList.toggle('ntgt',el.dataset.id===id);el.classList.toggle('sel',el.dataset.id===id);});
+  switchTab('stores');
+}
+function rebuildRoute(){
+  if(!navTarget)return;
+  const path=dijkstra(userLoc.id,navTarget.id);
+  route=path||[];dirty=true;
+  const np=document.getElementById('np');np.classList.remove('hide');
+  document.getElementById('np-dest').textContent=navTarget.n;
+  document.getElementById('np-from').textContent=userLoc.n;
+  let td=0;
+  if(route.length>1)for(let i=0;i<route.length-1;i++){const a=G[route[i]],b=G[route[i+1]];if(a&&b)td+=Math.hypot(a.x-b.x,a.y-b.y);}
+  const m=Math.round(td*.55);
+  document.getElementById('np-d').textContent=m;
+  document.getElementById('np-t').textContent=Math.max(1,Math.round(m/70));
+  document.getElementById('np-n').textContent=route.length;
+  const detailedSteps = genSteps(route, navTarget);
+  document.getElementById('np-stps').innerHTML = detailedSteps.map((st,i)=>`
+    <div class="np-stp">
+      <div class="np-si ${i===0?'c':st.isArrival?'e':''}">${st.icon}</div>
+      <div class="np-stxt">${st.text}</div>
+    </div>`).join('');
+  layers[navTarget.f]=true;updateLayerBtns();
+  // Voice: rebuild steps and announce first step if voice is on
+  buildVoiceSteps();
+  if(VOICE.enabled){
+    showVoiceBar();
+    announceStep(0);
+  }
+}
+// ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// TURN-BY-TURN ENGINE  v4 — dense graph, segment merging
+// ═══════════════════════════════════════════════════════
+// 1 SVG unit ≈ 0.55 m
+const MPU = 0.55;
+
+function nodeDist(a, b){ return Math.hypot(b.x - a.x, b.y - a.y); }
+
+// Round to nearest 5 m, minimum 5 m
+function fmtM(units){
+  const m = Math.max(5, Math.round(units * MPU / 5) * 5);
+  return m + ' metres';
+}
+
+// Bearing in degrees clockwise from north (SVG: y increases downward)
+function bng(a, b){
+  const dx = b.x - a.x, dy = a.y - b.y; // flip y → north=up
+  return ((Math.atan2(dx, dy) * 180 / Math.PI) + 360) % 360;
+}
+
+// Cardinal direction word from bearing
+function card(b){
+  const w = ['north','north-east','east','south-east','south','south-west','west','north-west'];
+  return w[Math.round(b / 45) % 8];
+}
+
+// Turn word + icon given two bearings (degrees). Returns null if straight.
+function turn(fromB, toB){
+  let d = ((toB - fromB) + 360) % 360;
+  if(d > 180) d -= 360;          // range -180..180
+  if(Math.abs(d) <= 20) return null;
+  if(d > 20  && d <= 70)  return {w:'right',       i:'→'};
+  if(d > 70  && d <= 135) return {w:'right',       i:'→'};
+  if(d > 135)             return {w:'sharp right',  i:'↪'};
+  if(d < -20 && d >= -70) return {w:'left',        i:'←'};
+  if(d < -70 && d >= -135)return {w:'left',        i:'←'};
+                          return {w:'sharp left',   i:'↩'};
+}
+
+// ── MAIN: Generate step-by-step instructions ─────────────────────────
+function genSteps(path, tgt){
+  if(!path || path.length < 2)
+    return [{icon:'❌', text:'No route found', spoken:'No route found.', nodeIdx:0}];
+
+  const steps = [];
+  const ns = path.map(k => G[k]).filter(Boolean);
+
+  // ── Step 0: Start ────────────────────────────────────────────────
+  steps.push({
+    icon: '📍',
+    text: `Start at <b>${userLoc.n}</b> — ${FN[ns[0].f]}`,
+    spoken: `Starting navigation from ${userLoc.n} on the ${FN[ns[0].f]}.`,
+    nodeIdx: 0,
+  });
+
+  // ── Walk every edge, accumulate same-direction segments ──────────
+  // Each segment = {dist, turnWord, turnIcon, nodeIdx, floor}
+  // We emit a step when: direction changes, floor changes, or end of path.
+
+  let segDist  = 0;      // accumulated distance of current segment
+  let segBng   = null;   // bearing of current segment
+  let segTurn  = null;   // turn instruction at start of segment (null = first seg)
+  let segStart = 0;      // path index where current segment started
+  let segFloor = ns[0].f;
+
+  function emitSegment(reason){
+    if(segDist < 1) return;
+    const m = fmtM(segDist);
+    if(segTurn === null){
+      // Very first segment — "Head <direction>"
+      const dir = card(segBng);
+      steps.push({
+        icon: '⬆',
+        text: `Head <b>${dir}</b> and walk <b>${m}</b>`,
+        spoken: `Head ${dir} and walk ${m}.`,
+        nodeIdx: segStart,
+      });
+    } else {
+      steps.push({
+        icon: segTurn.i,
+        text: `Turn <b>${segTurn.w}</b>, then walk <b>${m}</b>`,
+        spoken: `Turn ${segTurn.w}, then walk ${m}.`,
+        nodeIdx: segStart,
+      });
+    }
+    segDist = 0;
+  }
+
+  for(let i = 0; i < ns.length - 1; i++){
+    const a = ns[i], b = ns[i+1];
+
+    // ── Floor change: emit current segment, then escalator step ────
+    if(a.f !== b.f){
+      emitSegment('floor');
+      const up = b.f > a.f;
+      steps.push({
+        icon: up ? '⬆' : '⬇',
+        text: `Take the escalator <b>${up ? 'up' : 'down'}</b> to the <b>${FN[b.f]}</b>`,
+        spoken: `Take the escalator ${up ? 'up' : 'down'} to the ${FN[b.f]}.`,
+        nodeIdx: i,
+      });
+      // Reset segment for new floor
+      segDist  = 0;
+      segBng   = null;
+      segTurn  = null;
+      segStart = i + 1;
+      segFloor = b.f;
+      continue;
+    }
+
+    const d    = nodeDist(a, b);
+    const currB = bng(a, b);
+
+    // ── First edge on this floor ────────────────────────────────────
+    if(segBng === null){
+      segBng   = currB;
+      segDist  = d;
+      segStart = i;
+      continue;
+    }
+
+    // ── Check for turn ──────────────────────────────────────────────
+    const t = turn(segBng, currB);
+    if(t){
+      // Emit previous segment, start new one with this turn
+      emitSegment('turn');
+      segTurn  = t;
+      segBng   = currB;
+      segDist  = d;
+      segStart = i;
+    } else {
+      // Straight — accumulate
+      segDist += d;
+    }
+  }
+
+  // Flush last segment
+  emitSegment('end');
+
+  // ── Arrival ─────────────────────────────────────────────────────
+  steps.push({
+    icon: '🏁',
+    text: `Arrived at <b>${tgt.n}</b> · ${FN[tgt.f]} · Open ${tgt.t}`,
+    spoken: `You have arrived at ${tgt.n} on the ${FN[tgt.f]}. Open ${tgt.t}.`,
+    nodeIdx: path.length - 1,
+    isArrival: true,
+  });
+
+  return steps;
+}
+
+function togWalk(){
+  if(walking){
+    clearInterval(walkTimer);walking=false;walkStep=0;
+    document.getElementById('np-wb').textContent='▶ START WALK';
+    document.getElementById('np-wb').classList.remove('walk');
+    if(VOICE.synth)VOICE.synth.cancel();
+    updateUserPosLabel();customPin=null;dirty=true;
+  } else {
+    if(!route.length)return;
+    walking=true;walkStep=0;
+    document.getElementById('np-wb').textContent='■ STOP';
+    document.getElementById('np-wb').classList.add('walk');
+    // Announce start
+    if(VOICE.enabled){
+      showVoiceBar();
+      announceStep(0);
+    }
+    walkTimer=setInterval(()=>{
+      walkStep+=.35;
+      if(walkStep>=route.length-1){
+        walkStep=route.length-1;clearInterval(walkTimer);walking=false;
+        document.getElementById('np-wb').textContent='▶ START WALK';
+        document.getElementById('np-wb').classList.remove('walk');
+        onArrival(); // ← trigger on arrival
+      }
+      const n=G[route[Math.floor(walkStep)]];
+      if(n)document.getElementById('upos').textContent=`📍 ${FN[n.f]} · ${FA[n.f]} ↗`;
+      updateVoiceForWalkStep();
+      dirty=true;
+    },280);
+  }
+}
+
+// Called when walk simulation completes = user "arrived"
+function onArrival(){
+  if(!navTarget)return;
+  const s=navTarget;
+  // record in history
+  recordVisit({id:s.id,n:s.n,e:s.e,c:s.c,f:s.f,nodeId:s.id in G?s.id:nearestNode(s.x+s.w/2,s.y+s.h/2,s.f)});
+  // auto-update current location to arrived store
+  const nk=s.id in G?s.id:nearestNode(s.x+s.w/2,s.y+s.h/2,s.f);
+  const nn=G[nk];
+  userLoc={id:nk,n:s.n,f:s.f,x:nn?.x||400,y:nn?.y||255,custom:false};
+  customPin=null;
+  updateUserPosLabel();buildSidebar();buildHistoryPanel();
+  showToast(`✓ Arrived at ${s.n} · Location updated`);
+  speak(`You have arrived at ${s.n}. Your location has been updated.`);
+  setTimeout(()=>{stopVoiceNav();navTarget=null;route=[];document.getElementById('np').classList.add('hide');dirty=true;},1800);
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTORY PANEL
+// ═══════════════════════════════════════════════════════
+function buildHistoryPanel(){
+  const wrap=document.getElementById('hist-wrap');
+  if(!visitHistory.length){
+    wrap.innerHTML=`<div class="hist-empty"><div class="hist-empty-icon">🗺</div>No visits yet.<br>Navigate to stores to build your history.</div>`;
+    return;
+  }
+  // Journey stats
+  const stores=visitHistory.filter(h=>!h.isGate);
+  const totalMin=stores.reduce((a,h)=>a+(h.duration||2),0);
+  const floors=[...new Set(visitHistory.map(h=>h.f))].length;
+  const inferred=inferredCurrentLoc();
+
+  let html='';
+
+  // Current inferred location card
+  if(inferred){
+    const last=visitHistory[0];
+    const fc=FC[last.f];
+    html+=`<div class="curr-loc-card">
+      <div class="clc-label">INFERRED CURRENT LOCATION</div>
+      <div class="clc-name">${last.e||'📍'} ${last.n}</div>
+      <div class="clc-meta">
+        <span class="clc-floor" style="background:${fc}22;color:${fc};border:1px solid ${fc}44">${FA[last.f]}</span>
+        <span>${fmtTime(last.ts)}</span>
+        <span style="color:var(--t3)">· Based on last destination</span>
+      </div>
+      <div class="clc-actions">
+        <button class="clc-btn primary" onclick="continueFromLastVisit()">▶ Use as My Location</button>
+        <button class="clc-btn secondary" onclick="switchTab('loc')">Change</button>
+      </div>
+    </div>`;
+  }
+
+  // Journey stats bar
+  if(stores.length>0){
+    html+=`<div class="journey-bar">
+      <div class="jb-stat"><div class="jb-val">${visitHistory.length}</div><div class="jb-lbl">stops</div></div>
+      <div class="jb-stat"><div class="jb-val">${stores.length}</div><div class="jb-lbl">stores</div></div>
+      <div class="jb-stat"><div class="jb-val">${floors}</div><div class="jb-lbl">floors</div></div>
+      <div class="jb-stat"><div class="jb-val">${totalMin}m</div><div class="jb-lbl">approx time</div></div>
+    </div>`;
+  }
+
+  html+='<div class="hist-section-label">Your Journey — Most Recent First</div>';
+
+  // Timeline
+  visitHistory.forEach((h,i)=>{
+    const fc=FC[h.f];
+    const isCurrent=(i===0);
+    const dur=h.duration?`${h.duration}m stay`:'';
+    const lineColor=i<visitHistory.length-1?fc:'transparent';
+
+    html+=`<div class="hitem">
+      <div class="hline">
+        <div class="hline-dot" style="border-color:${fc};${isCurrent?'background:'+fc:''}"></div>
+        <div class="hline-seg" style="background:${lineColor};opacity:.35"></div>
+      </div>
+      <div class="hcard ${isCurrent?'current-stop':''}" onclick="histCardClick(${i})">
+        ${isCurrent?'<div class="ha-badge" style="background:rgba(255,193,74,.15);color:var(--am);border:1px solid rgba(255,193,74,.3)">📍 Last Stop</div>':''}
+        <div class="hcard-left">
+          <div class="hcard-name">${h.e||'📍'} ${h.n}</div>
+          <div class="hcard-time">${fmtTime(h.ts)}</div>
+        </div>
+        <div class="hcard-meta">
+          <span class="hcard-floor" style="background:${fc}22;color:${fc};border:1px solid ${fc}44">${FA[h.f]}</span>
+          <span class="hcard-cat">${h.isGate?'Entry Gate':CL[h.c]||h.c}</span>
+          ${dur?`<span class="hcard-dur">· ${dur}</span>`:''}
+        </div>
+        ${!h.isGate?`<div class="hcard-actions">
+          <button class="ha-btn go" onclick="event.stopPropagation();setNavFromHistory(${i})">→ Navigate Again</button>
+          <button class="ha-btn set-loc" onclick="event.stopPropagation();setLocFromHistory(${i})">📍 Set as Start</button>
+        </div>`:`<div class="hcard-actions"><button class="ha-btn set-loc" onclick="event.stopPropagation();setLocFromHistory(${i})">📍 Set as Start</button></div>`}
+      </div>
+    </div>`;
+  });
+
+  html+=`<button class="clear-hist" onclick="if(confirm('Clear all visit history?'))clearHistory()">🗑 Clear History</button>`;
+  wrap.innerHTML=html;
+}
+
+function histCardClick(i){
+  const h=visitHistory[i];
+  if(h.isGate){switchTab('stores');}
+  else{const s=STORES.find(x=>x.id===h.id);if(s){selectStore(s.id);switchTab('stores');}}
+}
+function setNavFromHistory(i){
+  const h=visitHistory[i];if(h.isGate)return;
+  setNav(h.id);
+}
+
+// ═══════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════
+function switchTab(tab){
+  activeTab=tab;
+  ['stores','hist','loc'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('on',t===tab);
+    document.getElementById('panel-'+t).classList.toggle('show',t===tab);
+  });
+  document.getElementById('stores-controls').style.display=tab==='stores'?'block':'none';
+  if(tab==='hist')buildHistoryPanel();
+  if(tab==='loc'){setLocMode(true);}else setLocMode(false);
+}
+function setVM(mode,btn){
+  vm=mode;document.querySelectorAll('.vm').forEach(b=>b.classList.remove('on'));btn.classList.add('on');resetCam(true);
+}
+function togLayer(f){layers[f]=!layers[f];updateLayerBtns();dirty=true;}
+function updateLayerBtns(){[0,1,2].forEach(f=>document.getElementById('lt'+f).classList.toggle('on',layers[f]));}
+function setCat(c,btn){cat=c;document.querySelectorAll('.cat').forEach(b=>b.classList.remove('on'));btn.classList.add('on');buildSidebar();dirty=true;}
+function onSearch(q){srch=q;buildSidebar();dirty=true;}
+function resetCam(anim=true){
+  const ts=vm==='explode'?.52:vm==='iso'?.75:.88,ty=vm==='explode'?-80:0;
+  if(anim){cam.tx=0;cam.ty=ty;cam.ts=ts;}else{cam.x=cam.tx=0;cam.y=cam.ty=ty;cam.s=cam.ts=ts;}
+  dirty=true;
+}
+function getFiltered(){return STORES.filter(s=>(cat==='all'||s.c===cat)&&(!srch||s.n.toLowerCase().includes(srch.toLowerCase())));}
+
+function buildSidebar(){
+  document.getElementById('slist').innerHTML=getFiltered().map(s=>{
+    const cc=CC[s.c]||CC.svc,[r,g,b]=cc.fill;
+    const isTgt=navTarget?.id===s.id,isOrig=userLoc?.id===s.id||userLoc?.id===nearestNode(s.x+s.w/2,s.y+s.h/2,s.f);
+    const wasVis=visitHistory.some(h=>h.id===s.id);
+    return`<div class="si ${isTgt?'ntgt':isOrig?'origin':''}" data-id="${s.id}" onclick="selectStore('${s.id}')">
+      <div class="sico" style="background:rgba(${r},${g},${b},.13);position:relative">${s.e}${wasVis?'<span style="position:absolute;top:-2px;right:-2px;font-size:8px">✓</span>':''}</div>
+      <div class="sinf"><div class="sn">${s.n}</div>
+      <div class="sm"><span class="fdot" style="background:${FC[s.f]}"></span>${FA[s.f]} · ${CL[s.c]}${wasVis?' · <span style="color:var(--am)">visited</span>':''}</div></div>
+      <div class="sdot ${s.o?'open':'closed'}"></div>
+      <button class="nb lb" title="Set as my location" onclick="event.stopPropagation();setLocFromStore('${s.id}')">📍</button>
+      <button class="nb db" title="Navigate here" onclick="event.stopPropagation();setNav('${s.id}')">→</button>
+    </div>`;
+  }).join('');
+}
+
+function buildLocPanels(){
+  document.getElementById('loc-gate-opts').innerHTML=LOC_NODES.map(l=>`
+    <div class="hcard" style="margin-bottom:4px;margin-left:0;cursor:pointer" onclick="setLocFromNode('${l.id}')">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:14px">${l.e}</span>
+        <div><div style="font-size:12px;font-weight:600">${l.n}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--t2)">${FA[l.f]} · ${l.sub}</div></div>
+        ${userLoc.id===l.id?'<span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--am)">● NOW</span>':''}
+      </div>
+    </div>`).join('');
+  document.getElementById('loc-store-opts').innerHTML=STORES.slice(0,8).map(s=>`
+    <div class="hcard" style="margin-bottom:4px;margin-left:0;cursor:pointer" onclick="setLocFromStore('${s.id}')">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px">${s.e}</span>
+        <div><div style="font-size:12px;font-weight:600">${s.n}</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--t2)">${FA[s.f]} · ${CL[s.c]}</div></div>
+        ${userLoc.n===s.n?'<span style="margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--am)">● NOW</span>':''}
+      </div>
+    </div>`).join('');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.display='block';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{t.style.display='none';},3200);
+}
+function fmtTime(ts){
+  const d=new Date(ts),now=new Date();
+  const diff=Math.round((now-d)/60000);
+  if(diff<1)return'Just now';if(diff<60)return`${diff}m ago`;
+  if(diff<1440)return`${Math.round(diff/60)}h ago`;
+  return d.toLocaleDateString();
+}
+
+// ═══════════════════════════════════════════════════════
+// VOICE NAVIGATION ENGINE
+// ═══════════════════════════════════════════════════════
+const VOICE={
+  enabled:false,
+  muted:false,
+  steps:[],        // [{text, spokenText, icon}]
+  currentStep:0,
+  speaking:false,
+  synth: window.speechSynthesis||null,
+  voice:null,
+  supported: !!window.speechSynthesis,
+};
+
+// Pick best voice — prefer Indian English, fallback to any English
+function initVoice(){
+  if(!VOICE.supported)return;
+  const loadVoices=()=>{
+    const voices=VOICE.synth.getVoices();
+    VOICE.voice=
+      voices.find(v=>v.lang==='en-IN')||
+      voices.find(v=>v.lang.startsWith('en-IN'))||
+      voices.find(v=>v.lang.startsWith('en'))||
+      voices[0]||null;
+  };
+  loadVoices();
+  if(VOICE.synth.onvoiceschanged!==undefined) VOICE.synth.onvoiceschanged=loadVoices;
+}
+
+function toggleVoiceEnabled(){
+  VOICE.enabled=!VOICE.enabled;
+  const btn=document.getElementById('voice-toggle-btn');
+  btn.textContent=VOICE.enabled?'ON':'OFF';
+  btn.classList.toggle('on',VOICE.enabled);
+  if(VOICE.enabled&&route.length>1){
+    buildVoiceSteps();
+    showVoiceBar();
+    announceStep(VOICE.currentStep);
+  } else {
+    stopVoiceNav();
+  }
+}
+
+function toggleMute(){
+  VOICE.muted=!VOICE.muted;
+  const btn=document.getElementById('vb-mute-btn');
+  btn.textContent=VOICE.muted?'🔊 Unmute':'🔇 Mute';
+  if(VOICE.muted&&VOICE.synth) VOICE.synth.cancel();
+}
+
+// Build rich spoken step list from route
+function buildVoiceSteps(){
+  const steps = genSteps(route, navTarget);
+  // genSteps already has spoken field, just store them
+  VOICE.steps = steps;
+  VOICE.currentStep = 0;
+  renderVoiceDots();
+}
+
+function renderVoiceDots(){
+  const dots=document.getElementById('vb-dots');
+  const count=document.getElementById('vb-count');
+  if(!dots)return;
+  dots.innerHTML=VOICE.steps.map((_,i)=>`<div class="vb-dot ${i<VOICE.currentStep?'done':i===VOICE.currentStep?'current':''}"></div>`).join('');
+  count.textContent=`${VOICE.currentStep+1}/${VOICE.steps.length}`;
+}
+
+function showVoiceBar(){
+  document.getElementById('voice-bar').classList.add('show');
+}
+function hideVoiceBar(){
+  document.getElementById('voice-bar').classList.remove('show');
+}
+
+function announceStep(idx){
+  if(idx<0||idx>=VOICE.steps.length)return;
+  VOICE.currentStep=idx;
+  const step=VOICE.steps[idx];
+  // Update UI
+  document.getElementById('vb-step').innerHTML=step.icon+' '+step.text;
+  renderVoiceDots();
+  if(VOICE.muted||!VOICE.synth||!VOICE.enabled)return;
+  VOICE.synth.cancel();
+  // Use the pre-built spoken text (detailed, no HTML)
+  const spokenText = step.spoken || step.text.replace(/<[^>]+>/g,'');
+  const utt=new SpeechSynthesisUtterance(spokenText);
+  utt.voice=VOICE.voice;
+  utt.rate=0.9; utt.pitch=1.05; utt.volume=1;
+  utt.lang=VOICE.voice?.lang||'en-IN';
+  const icon=document.getElementById('vb-icon');
+  utt.onstart=()=>{VOICE.speaking=true;icon.classList.add('speaking');};
+  utt.onend=()=>{VOICE.speaking=false;icon.classList.remove('speaking');};
+  utt.onerror=()=>{VOICE.speaking=false;icon.classList.remove('speaking');};
+  VOICE.synth.speak(utt);
+}
+
+function voiceNext(){
+  if(VOICE.currentStep<VOICE.steps.length-1) announceStep(VOICE.currentStep+1);
+}
+function voicePrev(){
+  if(VOICE.currentStep>0) announceStep(VOICE.currentStep-1);
+}
+function voiceRepeat(){
+  if(VOICE.synth) VOICE.synth.cancel();
+  announceStep(VOICE.currentStep);
+}
+
+function stopVoiceNav(){
+  if(VOICE.synth) VOICE.synth.cancel();
+  VOICE.enabled=false;VOICE.speaking=false;VOICE.steps=[];VOICE.currentStep=0;
+  document.getElementById('voice-toggle-btn').textContent='OFF';
+  document.getElementById('voice-toggle-btn').classList.remove('on');
+  hideVoiceBar();
+}
+
+// Called during walk to auto-advance voice step based on route progress
+function updateVoiceForWalkStep(){
+  if(!VOICE.enabled||!VOICE.steps.length)return;
+  const curNodeIdx=Math.floor(walkStep);
+  // Find the latest step whose nodeIdx we've passed
+  let targetStep=0;
+  for(let i=0;i<VOICE.steps.length;i++){
+    const ni=VOICE.steps[i].nodeIdx??0;
+    if(ni<=curNodeIdx) targetStep=i;
+  }
+  if(targetStep!==VOICE.currentStep&&!VOICE.speaking){
+    announceStep(targetStep);
+  }
+}
+
+// Speak a one-off message (arrival, location update, etc.)
+function speak(text){
+  if(!VOICE.synth||!VOICE.enabled||VOICE.muted)return;
+  VOICE.synth.cancel();
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.voice=VOICE.voice;utt.rate=0.95;utt.pitch=1.05;utt.volume=1;
+  utt.lang=VOICE.voice?.lang||'en-IN';
+  VOICE.synth.speak(utt);
+}
+
+// ═══════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════
+function rrect(c,x,y,w,h,r){r=Math.min(r,w/2,h/2);c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v));}
+
+// ═══════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════
+buildQR();
+</script>
+</body>
+</html>
